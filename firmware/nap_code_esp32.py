@@ -91,7 +91,7 @@ def detect_esp32_port():
 
 
 def main():
-    target_port, available_ports = detect_esp32_port()
+    target_port, _ = detect_esp32_port()
     if not target_port:
         print("[LỖI] Không tìm thấy cổng COM nào! Hãy kiểm tra cáp USB cắm vào ESP32.")
         return

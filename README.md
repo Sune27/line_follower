@@ -36,7 +36,7 @@ line_follower/
         ├── web_server.py                              # Web Server Non-blocking điều khiển qua trình duyệt
         ├── line_sensor.py                             # Đọc 5 mắt TCRT5000 & tính toán sai số (-4 .. +4)
         ├── motor_driver.py                            # Điều khiển PWM 4 kênh TB6612FNG + Xung mồi Kickstart
-        └── line_tracker.py                            # Thuật toán dò line (Chế độ SMOOTH PID & STEP)
+        └── line_tracker.py                            # Thuật toán dò line mượt PID + Bơm gia tốc cua
 ```
 
 ---

@@ -36,7 +36,7 @@ def main():
     )
     active_ip = wifi_client.start()
 
-    # 2. Khởi tạo Driver Động cơ TB6612FNG (PWM 4 chân + Kickstart 95%)
+    # 2. Khởi tạo Driver Động cơ TB6612FNG (PWM 4 chân + Kickstart 98%)
     motor = MotorDriver(
         pin_ain1=config.PIN_MOTOR_AIN1,
         pin_ain2=config.PIN_MOTOR_AIN2,

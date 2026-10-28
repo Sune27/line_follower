@@ -1,14 +1,11 @@
 # ==============================================================================
-# LINE_TRACKER.PY – BỘ ĐIỀU KHIỂN DÒ LINE (TỐI ƯU GIA TỐC CUA Ở MẮT 1 & MẮT 5)
+# LINE_TRACKER.PY – BỘ ĐIỀU KHIỂN DÒ LINE PID MƯỢT (OOP)
 # ==============================================================================
-# Khắc phục triệt để hiện tượng xe bị dừng lại khi lệch ra Mắt 1 (S1) hoặc Mắt 5 (S5):
-#   - Nguyên nhân: Khi rẽ chỉ có 1 bánh gánh tải + ma sát ngang của lốp, nếu cấp
-#     lực <= 65% hoặc phanh dừng làm mất đà thì động cơ bị kẹt ma sát đứng im!
-#   - Giải pháp:
-#     1. Không phanh dừng làm mất đà lăn khi chạm Mắt 1 / Mắt 5.
-#     2. Tự động BƠM GIA TỐC (Boost) bánh ngoài lên 78% (ở Mắt 2/4) và 90% (ở Mắt 1/5),
-#        đồng thời bánh trong trợ lực lùi -65% (vượt ngưỡng ma sát 60%) để cuốn đầu
-#        xe quay trở lại vạch đen ngay lập tức!
+# Thuật toán PID chạy mượt liên tục kết hợp Bơm Gia Tốc Cua (Corner Boost):
+#   - Đi thẳng (Mắt 3): Chạy êm quanh tốc độ cơ sở (LINE_BASE_SPEED = 62%).
+#   - Lệch vừa (Mắt 2 / Mắt 4): Tăng gia tốc bánh ngoài lên >= 78%, bánh trong 0%.
+#   - Lệch rìa ngoài (Mắt 1 / Mắt 5): Bơm gia tốc bánh ngoài 90%, bánh trong -65%
+#     để vượt ngưỡng ma sát nghỉ và cuốn đầu xe quay vào tâm vạch mượt mà.
 # ==============================================================================
 
 import time
@@ -40,7 +37,6 @@ class LineTracker:
 
     def __init__(self, motor_driver):
         self.motor = motor_driver
-        self.drive_mode = getattr(config, "DEFAULT_DRIVE_MODE", "SMOOTH")
 
         self.min_speed = int(getattr(config, "LINE_MIN_SPEED", 55))
         self.base_speed = int(getattr(config, "LINE_BASE_SPEED", 62))
@@ -52,13 +48,6 @@ class LineTracker:
         self.mid_turn_inner_speed = int(getattr(config, "MID_TURN_INNER_SPEED", 0))
         self.corner_turn_outer_speed = int(getattr(config, "CORNER_TURN_OUTER_SPEED", 90))
         self.corner_turn_inner_speed = int(getattr(config, "CORNER_TURN_INNER_SPEED", -65))
-
-        # Thông số Chế độ STEP
-        self.step_fwd_pulse_ms = int(getattr(config, "STEP_FWD_PULSE_MS", 45))
-        self.step_fwd_coast_ms = int(getattr(config, "STEP_FWD_COAST_MS", 15))
-        self.step_pivot_on_ms = int(getattr(config, "STEP_PIVOT_ON_MS", 60))
-        self.step_pivot_off_ms = int(getattr(config, "STEP_PIVOT_OFF_MS", 10))
-        self.step_pivot_speed = int(getattr(config, "STEP_PIVOT_SPEED", 88))
 
         # Thông số PID
         self.kp = float(getattr(config, "PID_KP", 7.5))
@@ -83,15 +72,10 @@ class LineTracker:
         self.current_error = 0.0
         self.smooth_error = 0.0
         self.prev_smooth_error = 0.0
-        self.prev_raw_error = 0.0
         self.last_valid_error = 0.0
         self.integral = 0.0
         self.pid_output = 0.0
         self.lost_line_start_time = 0
-        self.cross_start_time = 0
-        self.step_state = "FORWARD"
-        self.step_state_start_ms = 0
-        self.step_turn_dir = 0
 
     def _drive(self, left, right):
         out_l = int(round(left * self.left_scale))
@@ -105,27 +89,18 @@ class LineTracker:
         self.reset_pid()
         self.is_active = True
         self.start_ticks = time.ticks_ms()
-        self.step_state_start_ms = self.start_ticks
-        self.last_action = f"START ({self.drive_mode})"
+        self.last_action = "START PID"
         self._drive(self.startup_speed, self.startup_speed)
-        print(f"[Tracker] ▶ BẮT ĐẦU DÒ LINE | Chế độ: {self.drive_mode} | Base={self.base_speed}%")
+        print(f"[Tracker PID] ▶ BẮT ĐẦU DÒ LINE | Base={self.base_speed}%, Kp={self.kp}, Ki={self.ki}, Kd={self.kd}")
 
     def stop(self):
         self.is_active = False
         self.reset_pid()
         self.last_action = "STOPPED"
         self.motor.stop()
-        print("[Tracker] ⏹ ĐÃ DỪNG XE")
+        print("[Tracker PID] ⏹ ĐÃ DỪNG XE")
 
-    def set_mode(self, mode_str):
-        if mode_str in ("STEP", "SMOOTH"):
-            self.drive_mode = mode_str
-            self.reset_pid()
-            print(f"[Tracker] 🔄 Đã chuyển sang chế độ: {self.drive_mode}")
-
-    def set_params(self, base_speed=None, kp=None, ki=None, kd=None, left_scale=None, right_scale=None, mode=None):
-        if mode in ("STEP", "SMOOTH"):
-            self.drive_mode = mode
+    def set_params(self, base_speed=None, kp=None, ki=None, kd=None, left_scale=None, right_scale=None):
         if base_speed is not None:
             self.base_speed = max(40, min(98, int(base_speed)))
         if kp is not None:
@@ -161,89 +136,6 @@ class LineTracker:
 
         return (err, "TRACKING")
 
-    # ==========================================================================
-    # CHẾ ĐỘ "STEP" – BĂM NHỊP TIẾN, NHƯNG BƠM GIA TỐC MẠNH (88%) KHI LỆCH MẮT 1/5
-    # ==========================================================================
-    def _update_step_mode(self, sensors, now_ms):
-        s1, s2, s3, s4, s5 = sensors[0], sensors[1], sensors[2], sensors[3], sensors[4]
-        raw_error, mode = self._compute_error(sensors)
-        self.current_error = raw_error
-
-        if mode == "CROSS_LINE":
-            if self.auto_stop_on_cross:
-                self.stop()
-                return (0, 0, "STOPPED_CROSS")
-            self.last_action = "STEP_CROSS"
-            self._drive(self.base_speed, self.base_speed)
-            return (self.base_speed, self.base_speed, "STEP_CROSS")
-
-        run_spd = max(60, min(92, int(self.base_speed)))
-        elapsed = time.ticks_diff(now_ms, self.step_state_start_ms)
-
-        # 1. Khi chạm Mắt 1 (S1) hoặc Mắt 5 (S5) (|raw_error| >= 3.0) HOẶC mất line (00000):
-        #    -> KHÔNG DỪNG XE! Bơm ngay gia tốc lớn (Bánh ngoài 90%, Bánh trong -68%) để cuốn đầu xe vào!
-        if (mode == "TRACKING" and abs(raw_error) >= 3.0) or (mode == "LOST_LINE" and abs(self.last_valid_error) >= 1.5):
-            if mode == "LOST_LINE":
-                if self.lost_line_start_time == 0:
-                    self.lost_line_start_time = now_ms
-                if time.ticks_diff(now_ms, self.lost_line_start_time) >= self.lost_line_timeout_ms:
-                    self.stop()
-                    return (0, 0, "MẤT LINE - DỪNG")
-            else:
-                self.lost_line_start_time = 0
-
-            turn_dir = -1 if ((mode == "TRACKING" and raw_error < 0) or (mode == "LOST_LINE" and self.last_valid_error < 0)) else 1
-            outer_boost = max(86, self.step_pivot_speed)
-            inner_rev = -max(65, int(outer_boost * 0.75))
-
-            if turn_dir == -1:
-                self.last_action = "TĂNG TỐC CUA TRÁI"
-                self._drive(inner_rev, outer_boost)
-                return (inner_rev, outer_boost, self.last_action)
-            else:
-                self.last_action = "TĂNG TỐC CUA PHẢI"
-                self._drive(outer_boost, inner_rev)
-                return (outer_boost, inner_rev, self.last_action)
-
-        self.lost_line_start_time = 0
-
-        # 2. Khi lệch vừa ở Mắt 2 hoặc Mắt 4 (|raw_error| >= 1.8):
-        #    -> Bơm bánh ngoài lên 78%, bánh trong 0% để bẻ lái khỏe không bị khựng
-        if abs(raw_error) >= 1.8:
-            outer_mid = max(76, self.mid_turn_outer_speed)
-            if raw_error < 0:
-                self.last_action = "BẺ LÁI TRÁI (MẮT 2)"
-                self._drive(0, outer_mid)
-                return (0, outer_mid, self.last_action)
-            else:
-                self.last_action = "BẺ LÁI PHẢI (MẮT 4)"
-                self._drive(outer_mid, 0)
-                return (outer_mid, 0, self.last_action)
-
-        # 3. Khi đi thẳng hoặc lọt khe nhẹ ở tâm (|raw_error| <= 1.2):
-        fwd_cycle = self.step_fwd_pulse_ms + self.step_fwd_coast_ms
-        if (elapsed % fwd_cycle) < self.step_fwd_pulse_ms:
-            spd_l = run_spd
-            spd_r = run_spd
-            if raw_error < -0.5:
-                spd_l = 0
-                spd_r = max(72, run_spd + 10)
-            elif raw_error > 0.5:
-                spd_l = max(72, run_spd + 10)
-                spd_r = 0
-            self.last_action = "NHỊP TIẾN BÁM TÂM"
-            self._drive(spd_l, spd_r)
-            return (spd_l, spd_r, self.last_action)
-        else:
-            # Ghìm nhẹ về 45% (thay vì 0%) trong 15ms để giữ trớn lăn mượt
-            coast = max(45, int(run_spd * 0.7))
-            self.last_action = "GIỮ ĐÀ LĂN"
-            self._drive(coast, coast)
-            return (coast, coast, self.last_action)
-
-    # ==========================================================================
-    # HÀM CẬP NHẬT CHÍNH (GỌI MỖI 10ms)
-    # ==========================================================================
     def update(self, sensors, now_ms=None):
         if not self.is_active:
             return (0, 0, "IDLE")
@@ -251,13 +143,6 @@ class LineTracker:
         if now_ms is None:
             now_ms = time.ticks_ms()
 
-        if self.drive_mode == "STEP":
-            return self._update_step_mode(sensors, now_ms)
-
-        # ======================================================================
-        # CHẾ ĐỘ "SMOOTH" (KHUYÊN DÙNG CHO ĐƯỜNG CONG):
-        # Giữ đà lăn liên tục + Tự động tăng gia tốc (Boost) khi lệch ra Mắt 2/4 và Mắt 1/5
-        # ======================================================================
         is_startup = (
             self.startup_duration_ms > 0
             and time.ticks_diff(now_ms, self.start_ticks) < self.startup_duration_ms
@@ -283,7 +168,7 @@ class LineTracker:
                 self._drive(current_base, current_base)
                 return (current_base, current_base, self.last_action)
 
-            # Nếu vừa ở Mắt 2/4 (< 3.0) và mới lọt khe < 150ms -> Đẩy mạnh bánh ngoài (80%), bánh trong 0%
+            # Nếu vừa ở Mắt 2/4 (< 3.0) và mới lọt khe < 150ms -> Đẩy mạnh bánh ngoài (78%), bánh trong 0%
             if abs(self.last_valid_error) < 3.0 and lost_ms < 150:
                 boost_mid = max(78, self.mid_turn_outer_speed)
                 if self.last_valid_error < 0:
@@ -316,17 +201,33 @@ class LineTracker:
             self._drive(current_base, current_base)
             return (current_base, current_base, "CROSS_LINE")
 
-        # 3. Tính toán PID & Bơm gia tốc theo vùng lệch (Mắt 3 -> Mắt 2/4 -> Mắt 1/5)
+        # 3. Tính toán PID (P - I - D) & Bơm gia tốc theo vùng lệch
         smooth_err = (self.filter_alpha * raw_error) + ((1.0 - self.filter_alpha) * self.smooth_error)
+
+        # Khâu P
         p_term = self.kp * smooth_err
+
+        # Khâu I (kèm xóa tích phân khi qua tâm Zero-Crossing)
+        if self.ki == 0.0:
+            self.integral = 0.0
+            i_term = 0.0
+        else:
+            if abs(smooth_err) < 0.1 or (smooth_err * self.prev_smooth_error < 0):
+                self.integral = 0.0
+            else:
+                self.integral = max(-20.0, min(20.0, self.integral + smooth_err))
+            i_term = self.ki * self.integral
+
+        # Khâu D
         derivative = smooth_err - self.prev_smooth_error
         d_term = self.kd * derivative
+
         self.prev_smooth_error = smooth_err
         self.smooth_error = smooth_err
         self.current_error = round(smooth_err, 2)
 
         abs_err = abs(smooth_err)
-        pid_val = p_term + d_term
+        pid_val = p_term + i_term + d_term
         self.pid_output = round(pid_val, 2)
 
         if abs_err <= 1.2:
@@ -351,9 +252,8 @@ class LineTracker:
         else:
             # VÙNG RÌA NGOÀI (Mắt 1 hoặc Mắt 5 - |err| >= 3.0):
             # Bơm gia tốc tối đa cho bánh ngoài (90%) + Bánh trong lùi khỏe (-65%)
-            # Đảm bảo cả 2 bánh đều vượt ngưỡng ma sát 60% để cuốn xe quay vào line ngay lập tức!
             outer_max = max(self.corner_turn_outer_speed, min(96, int(current_base + abs(pid_val) * 1.2)))
-            inner_rev = self.corner_turn_inner_speed  # -65%
+            inner_rev = self.corner_turn_inner_speed
             if smooth_err < 0:
                 speed_l, speed_r = inner_rev, outer_max
                 self.last_action = "TĂNG TỐC CUA TRÁI (MẮT 1)"

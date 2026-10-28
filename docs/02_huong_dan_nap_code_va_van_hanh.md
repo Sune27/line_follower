@@ -61,11 +61,8 @@ Mặc định, ngay khi cấp nguồn (từ Pin hoặc USB), ESP32 sẽ tự đ�
 ## 4. Các Chức Năng Trên Bảng Điều Khiển Web
 
 1. **Khối Điều Khiển Chính:**
-   - **`▶ BẮT ĐẦU DÒ`:** Kích hoạt chế độ tự hành bám line.
+   - **`▶ BẮT ĐẦU DÒ`:** Kích hoạt chế độ tự hành bám line mượt PID (giữ đà lăn liên tục và tự động bơm gia tốc mạnh khi lệch ra mắt 2/4 hoặc mắt 1/5).
    - **`⏹ DỪNG XE`:** Ngắt xung PWM dừng khẩn cấp cả 2 động cơ ngay lập tức.
-   - **Chọn Kiểu Chạy Dò Line:**
-     - `🌊 Chạy PID Mượt Liên Tục` (`SMOOTH` - Mặc định): Giữ đà lăn liên tục và tự động bơm gia tốc mạnh khi lệch ra mắt 2/4 hoặc mắt 1/5.
-     - `🎯 Nhấp Phanh & Lùi Chỉnh Đầu` (`STEP`): Băm nhịp tiến ngắn kết hợp xoay chỉnh hướng gắt.
 2. **Khối Giám Sát 5 Mắt Cảm Biến TCRT5000 (`S1 -> S5`):**
    - Hiển thị trực tiếp mắt nào đang nhìn thấy vạch đen (`1` - sáng màu vàng) hoặc nền trắng (`0` - màu xám).
    - Hiển thị **Sai số vị trí (`Error` từ `-4` đến `+4`)** và **Tốc độ xuất ra 2 bánh (`Bánh Trái`, `Bánh Phải`)**.

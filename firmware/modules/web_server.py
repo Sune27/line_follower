@@ -27,14 +27,11 @@ h1{font-size:17px;text-align:center;color:#38bdf8;margin-bottom:2px}
 .badge{padding:3px 10px;border-radius:99px;font-weight:700;font-size:11px}
 .b-run{background:#16a34a;color:#fff}
 .b-stop{background:#475569;color:#e2e8f0}
-.btn-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px}
-.mode-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
+.btn-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 button{border:none;border-radius:12px;padding:14px 8px;font-size:15px;font-weight:700;cursor:pointer;transition:transform .08s,opacity .08s}
 button:active{transform:scale(0.95);opacity:0.85}
 .btn-start{background:#22c55e;color:#052e16;box-shadow:0 4px 12px rgba(34,197,94,.35)}
 .btn-stop{background:#ef4444;color:#fff;box-shadow:0 4px 12px rgba(239,68,68,.35)}
-.btn-mode{background:#334155;color:#cbd5e1;padding:10px 6px;font-size:12px;border:2px solid transparent}
-.btn-mode.active{background:#0369a1;color:#fff;border-color:#38bdf8}
 .sec-title{font-size:12px;font-weight:700;color:#94a3b8;margin-bottom:8px;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center}
 .sensors{display:flex;justify-content:space-around;padding:6px 0}
 .eye{display:flex;flex-direction:column;align-items:center;gap:4px}
@@ -62,10 +59,6 @@ function updateUI(d){
   const b=document.getElementById('modeBadge');
   if(d.run){b.className='badge b-run';b.innerText='ĐANG DÒ LINE';}
   else{b.className='badge b-stop';b.innerText='ĐANG DỪNG';}
-  if(d.mode){
-    document.getElementById('mStep').className=d.mode==='STEP'?'btn-mode active':'btn-mode';
-    document.getElementById('mSmooth').className=d.mode==='SMOOTH'?'btn-mode active':'btn-mode';
-  }
   if(d.s){
     for(let i=0;i<5;i++){
       const el=document.getElementById('s'+i);
@@ -88,7 +81,6 @@ function sendApi(path){
     document.getElementById('actTxt').innerText='THỬ LẠI...';
   });
 }
-function setMode(m){sendApi('/api/mode?m='+m);}
 function manual(l,r){sendApi('/api/manual?l='+l+'&r='+r);}
 function savePid(){
   const spd=document.getElementById('inSpd').value;
@@ -111,7 +103,7 @@ window.addEventListener('DOMContentLoaded',()=>{
 <body>
 <div class="card">
   <h1>🤖 XE DÒ LINE ESP32</h1>
-  <div class="sub">TCRT5000 (5 Mắt) + TB6612FNG • 192.168.4.1</div>
+  <div class="sub">TCRT5000 (5 Mắt) + TB6612FNG • Điều Khiển PID</div>
   <div class="status-bar">
     <span>Trạng thái: <b id="actTxt">SẴN SÀNG</b></span>
     <span id="modeBadge" class="badge b-stop">ĐANG DỪNG</span>
@@ -119,11 +111,6 @@ window.addEventListener('DOMContentLoaded',()=>{
   <div class="btn-row">
     <button type="button" class="btn-start" onclick="sendApi('/api/start')">▶ BẮT ĐẦU DÒ</button>
     <button type="button" class="btn-stop" onclick="sendApi('/api/stop')">⏹ DỪNG XE</button>
-  </div>
-  <div class="sec-title" style="margin-top:6px;margin-bottom:4px"><span>Kiểu Chạy Dò Line:</span></div>
-  <div class="mode-row">
-    <button type="button" id="mStep" class="btn-mode active" onclick="setMode('STEP')">🎯 Nhấp Phanh & Lùi Chỉnh Đầu</button>
-    <button type="button" id="mSmooth" class="btn-mode" onclick="setMode('SMOOTH')">🌊 Chạy PID Mượt Liên Tục</button>
   </div>
 </div>
 
@@ -165,11 +152,11 @@ window.addEventListener('DOMContentLoaded',()=>{
   <div class="sec-title"><span>Tinh Chỉnh Tốc Độ & PID</span></div>
   <div class="form-grid">
     <div class="inp-grp"><label>Tốc độ cơ sở (%)</label><input id="inSpd" type="number" value="62"></div>
-    <div class="inp-grp"><label>Hệ số Kp</label><input id="inKp" type="number" step="0.1" value="6.0"></div>
+    <div class="inp-grp"><label>Hệ số Kp</label><input id="inKp" type="number" step="0.1" value="7.5"></div>
     <div class="inp-grp"><label>Hệ số Ki</label><input id="inKi" type="number" step="0.01" value="0.04"></div>
-    <div class="inp-grp"><label>Hệ số Kd</label><input id="inKd" type="number" step="0.1" value="4.2"></div>
+    <div class="inp-grp"><label>Hệ số Kd</label><input id="inKd" type="number" step="0.1" value="4.5"></div>
   </div>
-  <button type="button" class="btn-save" onclick="savePid()">💾 CẬP NHẬT THÔNG SỐ</button>
+  <button type="button" class="btn-save" onclick="savePid()">💾 CẬP NHẬT THÔNG SỐ PID</button>
 </div>
 </body>
 </html>
@@ -194,7 +181,7 @@ class WebControlServer:
             self.server_sock.bind(("0.0.0.0", self.port))
             self.server_sock.listen(5)
             self.server_sock.setblocking(False)
-            print(f"[WebServer] 🌐 Đã mở cổng HTTP điều khiển tại http://192.168.4.1:{self.port}")
+            print(f"[WebServer] 🌐 Đã mở cổng HTTP điều khiển tại cổng {self.port}")
         except Exception as e:
             print("[WebServer] Lỗi khởi tạo socket:", e)
             self.server_sock = None
@@ -214,7 +201,6 @@ class WebControlServer:
         err = self.line_sensor.calculate_error(raw)
         return {
             "run": self.tracker.is_active,
-            "mode": self.tracker.drive_mode,
             "act": self.tracker.last_action,
             "s": raw,
             "err": err,
@@ -316,11 +302,6 @@ class WebControlServer:
                 elif path == "/api/stop":
                     self.tracker.stop()
                     print("[Web] ⏹ LỆNH: DỪNG XE")
-                    self._send_json(cl, self._build_status_dict())
-
-                elif path == "/api/mode":
-                    m = params.get("m", "STEP")
-                    self.tracker.set_mode(m)
                     self._send_json(cl, self._build_status_dict())
 
                 elif path == "/api/manual":
