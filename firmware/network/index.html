@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+  <title>Điều Khiển Xe Dò Line ESP32</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="app.js"></script>
+</head>
+<body>
+  <!-- Khối 1: Điều khiển chính -->
+  <div class="card">
+    <h1>🤖 XE DÒ LINE ESP32</h1>
+    <div class="sub">TCRT5000 (5 Mắt) + TB6612FNG • Điều Khiển PID</div>
+    <div class="status-bar">
+      <span>Trạng thái: <b id="actTxt">SẴN SÀNG</b></span>
+      <span id="modeBadge" class="badge b-stop">ĐANG DỪNG</span>
+    </div>
+    <div class="btn-row">
+      <button type="button" class="btn-start" onclick="sendApi('/api/start')">▶ BẮT ĐẦU DÒ</button>
+      <button type="button" class="btn-stop" onclick="sendApi('/api/stop')">⏹ DỪNG XE</button>
+    </div>
+  </div>
+
+  <!-- Khối 2: Giám sát 5 mắt cảm biến TCRT5000 -->
+  <div class="card">
+    <div class="sec-title">
+      <span>5 Mắt Cảm Biến TCRT5000</span>
+      <label class="live-toggle">
+        <input type="checkbox" id="liveChk" checked> Tự cập nhật
+      </label>
+    </div>
+    <div class="sensors">
+      <div class="eye"><div id="s0" class="dot">0</div><span>S1 (D21)</span></div>
+      <div class="eye"><div id="s1" class="dot">0</div><span>S2 (D19)</span></div>
+      <div class="eye"><div id="s2" class="dot">0</div><span>S3 (D18)</span></div>
+      <div class="eye"><div id="s3" class="dot">0</div><span>S4 (D5)</span></div>
+      <div class="eye"><div id="s4" class="dot">0</div><span>S5 (D17)</span></div>
+    </div>
+    <div class="metrics">
+      <div class="m-box">
+        <div class="m-lbl">Sai số (Error)</div>
+        <div id="errVal" class="m-val">0</div>
+      </div>
+      <div class="m-box">
+        <div class="m-lbl">Bánh Trái</div>
+        <div id="spdL" class="m-val">0%</div>
+      </div>
+      <div class="m-box">
+        <div class="m-lbl">Bánh Phải</div>
+        <div id="spdR" class="m-val">0%</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Khối 3: Lái thử động cơ thủ công -->
+  <div class="card">
+    <div class="sec-title"><span>Lái Thử Động Cơ (Manual Test)</span></div>
+    <div class="dpad">
+      <div></div>
+      <button type="button" onclick="manual(65,65)">▲ TIẾN</button>
+      <div></div>
+      <button type="button" onclick="manual(-50,50)">◀ TRÁI</button>
+      <button type="button" class="d-stop" onclick="sendApi('/api/stop')">■ DỪNG</button>
+      <button type="button" onclick="manual(50,-50)">PHẢI ▶</button>
+      <div></div>
+      <button type="button" onclick="manual(-60,-60)">▼ LÙI</button>
+      <div></div>
+    </div>
+  </div>
+
+  <!-- Khối 4: Tinh chỉnh thông số PID trực tiếp -->
+  <div class="card">
+    <div class="sec-title"><span>Tinh Chỉnh Tốc Độ & PID</span></div>
+    <div class="form-grid">
+      <div class="inp-grp">
+        <label for="inSpd">Tốc độ cơ sở (%)</label>
+        <input id="inSpd" type="number" value="62">
+      </div>
+      <div class="inp-grp">
+        <label for="inKp">Hệ số Kp</label>
+        <input id="inKp" type="number" step="0.1" value="7.5">
+      </div>
+      <div class="inp-grp">
+        <label for="inKi">Hệ số Ki</label>
+        <input id="inKi" type="number" step="0.01" value="0.04">
+      </div>
+      <div class="inp-grp">
+        <label for="inKd">Hệ số Kd</label>
+        <input id="inKd" type="number" step="0.1" value="4.5">
+      </div>
+    </div>
+    <button type="button" class="btn-save" onclick="savePid()">💾 CẬP NHẬT THÔNG SỐ PID</button>
+  </div>
+</body>
+</html>

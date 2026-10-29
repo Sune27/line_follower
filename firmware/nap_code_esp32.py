@@ -113,8 +113,11 @@ def main():
         ser.close()
         return
 
-    # Tạo thư mục modules trên ESP32
-    exec_raw(ser, "import os\ntry:\n os.mkdir('modules')\nexcept:\n pass\n")
+    # Tạo thư mục modules và network trên ESP32
+    exec_raw(
+        ser,
+        "import os\nfor d in ('modules', 'network'):\n try:\n  os.mkdir(d)\n except:\n  pass\n",
+    )
 
     base = Path(__file__).resolve().parent
     files_to_upload = [
@@ -122,8 +125,11 @@ def main():
         (base / "modules" / "line_sensor.py", "modules/line_sensor.py"),
         (base / "modules" / "motor_driver.py", "modules/motor_driver.py"),
         (base / "modules" / "line_tracker.py", "modules/line_tracker.py"),
-        (base / "modules" / "wifi_ap.py", "modules/wifi_ap.py"),
-        (base / "modules" / "web_server.py", "modules/web_server.py"),
+        (base / "network" / "wifi_ap.py", "network/wifi_ap.py"),
+        (base / "network" / "web_server.py", "network/web_server.py"),
+        (base / "network" / "index.html", "network/index.html"),
+        (base / "network" / "style.css", "network/style.css"),
+        (base / "network" / "app.js", "network/app.js"),
         (base / "boot.py", "boot.py"),
         (base / "main.py", "main.py"),
     ]

@@ -139,5 +139,5 @@ class WiFiStationClient:
         return "0.0.0.0"
 
 
-# Giữ bí danh tương thích với main.py
+# Giữ bí danh tương thích
 WiFiAccessPoint = WiFiStationClient

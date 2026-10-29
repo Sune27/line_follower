@@ -2,15 +2,21 @@
 # MAIN.PY – CHƯƠNG TRÌNH CHÍNH XE DÒ LINE TỰ HÀNH ESP32 (KẾT NỐI WI-FI "Sune")
 # ==============================================================================
 
+import sys
 import time
 import gc
 from machine import Pin
 import config
-from modules.wifi_ap import WiFiStationClient
+
+# Thêm thư mục 'network' vào sys.path để không trùng tên với module C 'network' có sẵn của MicroPython
+if "network" not in sys.path:
+    sys.path.append("network")
+
+from wifi_ap import WiFiStationClient
+from web_server import WebControlServer
 from modules.line_sensor import LineFollowerSensor
 from modules.motor_driver import MotorDriver
 from modules.line_tracker import LineTracker
-from modules.web_server import WebControlServer
 
 
 def main():

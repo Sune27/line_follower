@@ -31,12 +31,16 @@ line_follower/
     ├── boot.py                                        # Khởi động tự động khi cấp nguồn Pin
     ├── main.py                                        # Vòng lặp chính thời gian thực (100Hz)
     ├── nap_code_esp32.py                              # Script tự động dò cổng COM và nạp firmware
-    └── modules/
+    ├── modules/                                       # Khối Phần cứng & Điều khiển xe (OOP)
+    │   ├── line_sensor.py                             # Đọc 5 mắt TCRT5000 & tính toán sai số (-4 .. +4)
+    │   ├── motor_driver.py                            # Điều khiển PWM 4 kênh TB6612FNG + Xung mồi Kickstart
+    │   └── line_tracker.py                            # Thuật toán dò line mượt PID + Bơm gia tốc cua
+    └── network/                                       # Khối Truyền thông Wi-Fi & Giao diện Web
         ├── wifi_ap.py                                 # Module tự động tìm và kết nối Wi-Fi (Hotspot "Sune")
-        ├── web_server.py                              # Web Server Non-blocking điều khiển qua trình duyệt
-        ├── line_sensor.py                             # Đọc 5 mắt TCRT5000 & tính toán sai số (-4 .. +4)
-        ├── motor_driver.py                            # Điều khiển PWM 4 kênh TB6612FNG + Xung mồi Kickstart
-        └── line_tracker.py                            # Thuật toán dò line mượt PID + Bơm gia tốc cua
+        ├── web_server.py                              # Web Server HTTP Non-blocking xử lý API điều khiển
+        ├── index.html                                 # Giao diện HTML bảng điều khiển
+        ├── style.css                                  # Định dạng giao diện CSS (Dark Mode)
+        └── app.js                                     # Logic JavaScript gửi lệnh và đồng bộ trạng thái
 ```
 
 ---
