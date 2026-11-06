@@ -21,6 +21,7 @@ Toàn bộ tài liệu hướng dẫn đấu nối, vận hành và tinh chỉnh
 line_follower/
 ├── README.md                                          # Trang tổng quan dự án
 ├── nap_code_esp32.bat                                 # Công cụ nạp code 1-Click vào ESP32
+├── chay_ngrok_dieu_khien_xe.bat                       # Cầu nối ngrok điều khiển xe từ xa qua Internet
 ├── docs/                                              # Thư mục lưu trữ toàn bộ tài liệu hướng dẫn (.md, .txt)
 │   ├── 01_huong_dan_dau_noi_phan_cung.md
 │   ├── 02_huong_dan_nap_code_va_van_hanh.md
@@ -49,4 +50,16 @@ line_follower/
 
 1. **Nạp code:** Cắm cáp USB từ ESP32 vào máy tính và nhấp đúp chạy `nap_code_esp32.bat`.
 2. **Bật Wi-Fi Hotspot:** Bật điểm phát sóng cá nhân (2.4 GHz) trên điện thoại với tên **`Sune`** (mật khẩu: `mouse_love_rice`). Đèn LED xanh trên ESP32 sẽ **sáng đứng** khi kết nối thành công.
-3. **Điều khiển:** Mở trình duyệt Chrome trên điện thoại hoặc máy tính và truy cập `http://10.174.162.159` (hoặc IP in ra khi nạp code) để bắt đầu chạy xe!
+3. **Điều khiển mạng nội bộ (Local Wi-Fi):** Mở trình duyệt Chrome trên điện thoại hoặc máy tính và truy cập `http://10.174.162.159` (hoặc IP in ra khi nạp code) để bắt đầu chạy xe!
+
+---
+
+## 🌐 Điều Khiển Trực Tuyến Qua Internet (Ngrok Public Link)
+
+Dự án đã tích hợp đường link ngrok tĩnh cố định cho tài khoản của bạn, cho phép theo dõi cảm biến và điều khiển xe từ xa qua mạng Internet (sử dụng 4G/5G từ bất kỳ đâu):
+
+- 🔗 **Link Web Điều Khiển Online:** **[https://saturday-sarcasm-quarrel.ngrok-free.dev](https://saturday-sarcasm-quarrel.ngrok-free.dev)**
+- 🚀 **Cách kích hoạt:**
+  1. Đảm bảo xe và máy tính cùng kết nối vào mạng Wi-Fi Hotspot **`Sune`**.
+  2. Nhấp đúp chuột vào file **`chay_ngrok_dieu_khien_xe.bat`** trên máy tính (bấm Enter để nhận IP mặc định `10.174.162.159`).
+  3. Mở đường link trên trên bất kỳ điện thoại, máy tính bảng hay laptop nào có kết nối Internet để điều khiển xe trực tiếp!

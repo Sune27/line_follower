@@ -56,6 +56,14 @@ Mặc định, ngay khi cấp nguồn (từ Pin hoặc USB), ESP32 sẽ tự đ�
 2. Mở trình duyệt Web trên máy tính và truy cập cùng địa chỉ `http://10.174.162.159`.
 3. Màn hình trên Điện thoại và Máy tính sẽ **tự động đồng bộ trạng thái với nhau mỗi 0.5 giây**.
 
+### 3.3. Điều khiển từ xa qua mạng Internet (4G/5G qua Ngrok)
+1. Trên máy tính kết nối Wi-Fi `Sune`, nhấp đúp file **`chay_ngrok_dieu_khien_xe.bat`** (bấm Enter để nhận IP xe).
+2. Mở đường link công khai cố định trên bất kỳ thiết bị nào có Internet:
+   ```text
+   https://saturday-sarcasm-quarrel.ngrok-free.dev
+   ```
+3. Bạn có thể bật 4G trên điện thoại để điều khiển xe từ xa mà không cần chung mạng Wi-Fi!
+
 ---
 
 ## 4. Các Chức Năng Trên Bảng Điều Khiển Web
