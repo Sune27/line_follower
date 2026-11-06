@@ -10,7 +10,7 @@
 | STT | Thành Viên | Vai Trò Chuyên Môn | Nội Dung Phụ Trách Trong Báo Cáo | % Đóng Góp Dự Kiến | Tài Liệu & Code Cần Tham Khảo |
 | :---: | :--- | :--- | :--- | :---: | :--- |
 | **1** | **Thành viên 1 (Trưởng nhóm)** | **Kiến trúc Tổng thể & Tổng hợp** | - Bìa, Tóm tắt (Abstract), Từ khóa<br>- **Chương 1:** Giới thiệu (Động lực, Mục tiêu, Bố cục)<br>- **Mục 2.1:** Yêu cầu chung & Sơ đồ luồng hoạt động<br>- **Mục 2.2.1:** Kiến trúc tổng thể hệ thống<br>- Biên tập, định dạng, gộp file Word hoàn chỉnh | 20% | `README.md` |
-| **2** | **Thành viên 2** | **Phần cứng, Mạch & Nguồn điện** | - **Mục 2.2.7:** Yêu cầu phi chức năng (nguồn, tản nhiệt)<br>- **Mục 3.1:** Kiến trúc phần cứng<br>  + 3.1.0: Bảng linh kiện & Sơ đồ nối chân chi tiết<br>  + 3.1.1: Khối vi điều khiển ESP32<br>  + 3.1.2: Mảng cảm biến TCRT5000 5 mắt<br>  + 3.1.3: Mạch cầu H TB6612FNG & Động cơ DC TT | 20% | - `docs/01_huong_dan_dau_noi_phan_cung.md`<br>- `docs/huong_dan_noi_chan_tcrt5000_5mat_va_tb6612fng.txt`<br>- `firmware/config.py` |
+| **2** | **Đỗ Bá Hưng** | **Phần cứng, Mạch & Nguồn điện** | - **Mục 2.2.7:** Yêu cầu phi chức năng (nguồn, tản nhiệt)<br>- **Mục 3.1:** Kiến trúc phần cứng<br>  + 3.1.0: Bảng linh kiện & Sơ đồ nối chân chi tiết<br>  + 3.1.1: Khối vi điều khiển ESP32<br>  + 3.1.2: Mảng cảm biến TCRT5000 5 mắt<br>  + 3.1.3: Mạch cầu H TB6612FNG & Động cơ DC TT | 20% | - `docs/01_huong_dan_dau_noi_phan_cung.md`<br>- `docs/huong_dan_noi_chan_tcrt5000_5mat_va_tb6612fng.txt`<br>- `firmware/config.py` |
 | **3** | **Thành viên 3** | **Firmware Nhúng & Thuật Toán PID** | - **Mục 2.2.2:** Đặc tả Bộ điều khiển trung tâm ESP32<br>- **Mục 3.2:** Lập trình hệ thống nhúng (MicroPython)<br>  + Cấu trúc OOP: `LineFollowerSensor`, `MotorDriver`, `LineTracker`<br>  + Thuật toán PID sai số 5 mắt (Error -4..+4)<br>  + Cơ chế Xung mồi Kickstart (98% trong 70ms)<br>  + Bơm gia tốc cua Mắt 1 & 5 và xử lý lọt khe (00000)<br>  + Lưu đồ thuật toán vòng lặp 100Hz (`main.py`) | 20% | - `docs/03_nguyen_ly_thuat_toan_va_tinh_chinh_pid.md`<br>- `firmware/modules/line_sensor.py`<br>- `firmware/modules/motor_driver.py`<br>- `firmware/modules/line_tracker.py`<br>- `firmware/main.py` |
 | **4** | **Thành viên 4** | **Truyền Thông, Web Server & Ngrok** | - **Mục 2.2.3 & 2.2.6:** Đặc tả hệ thống truyền thông Wi-Fi, gói tin JSON API<br>- **Mục 2.2.5 & 3.3:** Lập trình Giao diện Web & Server<br>  + Kết nối Wi-Fi Station Mode (`wifi_ap.py`)<br>  + Web Server Non-blocking HTTP (`web_server.py`)<br>  + Tách lớp Frontend: `index.html`, `style.css`, `app.js`<br>  + Cầu nối Ngrok qua Internet (Link tĩnh `saturday-sarcasm-quarrel.ngrok-free.dev`) | 20% | - `docs/02_huong_dan_nap_code_va_van_hanh.md`<br>- `firmware/network/wifi_ap.py`<br>- `firmware/network/web_server.py`<br>- `firmware/network/index.html`<br>- `chay_ngrok_dieu_khien_xe.bat` |
 | **5** | **Thành viên 5** | **Thực Nghiệm, Đánh Giá & Video** | - **Chương 4:** Kiểm chứng (Validation)<br>  + Bảng kịch bản test (Đi thẳng, Cua cong, Cua gắt 90 độ, Lọt khe giữa 2 mắt, Trễ Web qua Wi-Fi/Ngrok)<br>  + Bảng kết quả Đạt/Chưa đạt, biểu đồ đánh giá<br>  + Quay/cắt video demo, đăng YouTube/Drive và lấy link<br>- **Chương 5:** Kết luận & Hướng phát triển | 20% | - Chạy thử nghiệm xe trên sân thực tế<br>- Quay video thao tác trên Web & trên đường đua |
@@ -30,7 +30,7 @@
 
 ---
 
-### 👤 Thành viên 2: Phần cứng & Mạch công suất
+### 👤 Đỗ Bá Hưng: Phần cứng & Mạch công suất
 - **3.1.0. Danh sách linh kiện:** Lập bảng gồm: ESP32 NodeMCU 30-Pin + Shield mở rộng, Mảng cảm biến TCRT5000 5 kênh, Driver TB6612FNG (bản 4 dây PWM), Khung xe 2 bánh kèm động cơ DC TT (tỷ số truyền 1:48), 2 Cell Pin 18650 (7.4V - 8.4V).
 - **Sơ đồ đấu nối (Wiring Diagram):**
   - Chèn bảng nối chân chi tiết từ file `docs/01_huong_dan_dau_noi_phan_cung.md`.
@@ -90,7 +90,7 @@
 ```text
 GIAI ĐOẠN 1 (Ngày 1 - Ngày 3): VIẾT BẢN THẢO THÔ
 ├── Thành viên 1: Hoàn thành Khung báo cáo, Chương 1 và Mục 2.1, 2.2.1
-├── Thành viên 2: Điền Bảng linh kiện và vẽ Sơ đồ đấu dây chi tiết
+├── Đỗ Bá Hưng: Điền Bảng linh kiện và vẽ Sơ đồ đấu dây chi tiết
 ├── Thành viên 3: Soạn công thức PID, cơ chế Kickstart, vẽ Lưu đồ thuật toán
 ├── Thành viên 4: Chụp ảnh giao diện Web, giải thích API và cấu hình Ngrok
 └── Thành viên 5: Lập danh sách kịch bản test và chuẩn bị sân chạy
@@ -98,7 +98,7 @@ GIAI ĐOẠN 1 (Ngày 1 - Ngày 3): VIẾT BẢN THẢO THÔ
 GIAI ĐOẠN 2 (Ngày 4 - Ngày 5): CHẠY TEST & THU THẬP MINH CHỨNG
 ├── Toàn nhóm: Cho xe chạy trên sa bàn thực tế
 ├── Thành viên 5: Ghi lại số liệu thực nghiệm (bảng 4.1), quay và dựng Video demo
-└── Các thành viên 2, 3, 4: Bổ sung hình ảnh thực tế mạch, cảm biến và đồ thị vào phần của mình
+└── Các Đỗ Bá Hưng, Thành viên 3, Thành viên 4: Bổ sung hình ảnh thực tế mạch, cảm biến và đồ thị vào phần của mình
 
 GIAI ĐOẠN 3 (Ngày 6): TỔNG HỢP & HOÀN THIỆN
 ├── Thành viên 1: Ghép nối các phần vào file Word chính thức, chuẩn hóa font và mục lục
