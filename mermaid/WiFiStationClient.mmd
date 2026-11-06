@@ -1,0 +1,25 @@
+%%{init: {'theme': 'default', 'themeVariables': {'darkMode': false, 'background': '#FFFFFF', 'mainBkg': '#FFFFFF', 'nodeBkg': '#FFFFFF', 'nodeBorder': '#2563EB', 'nodeTextColor': '#000000', 'lineColor': '#1E293B', 'textColor': '#000000', 'edgeLabelBackground': '#FFFFFF', 'fontSize': '16px'}}}%%
+flowchart LR
+    classDef default fill:#FFFFFF,stroke:#2563EB,stroke-width:2px,color:#000000,font-size:16px;
+    classDef step fill:#FFFFFF,stroke:#2563EB,stroke-width:2px,color:#000000,font-size:16px;
+    classDef cond fill:#FFFFFF,stroke:#D97706,stroke-width:2.5px,color:#000000,font-size:16px,font-weight:bold;
+    classDef final fill:#FFFFFF,stroke:#059669,stroke-width:2.5px,color:#000000,font-size:16px,font-weight:bold;
+
+    WF_START(["WiFiStationClient: connect()"]):::default
+    WF_INIT["Khởi tạo WLAN(STA_IF) & active(True)"]:::step
+    WF_SCAN["sta.connect(ssid, pwd) vào Hotspot Sune"]:::step
+    WF_CHECK{"sta.isconnected()?"}:::cond
+    WF_TIMEOUT{"Timeout 15 giây?"}:::cond
+
+    WF_BLINK["Nhấp nháy LED D2 (250ms)"]:::step
+    WF_SUCCESS["LED D2 sáng đứng, lấy IP"]:::step
+    WF_RET_TRUE(["Kết nối thành công (True)"]):::final
+
+    WF_FAIL_LED["Tắt LED D2"]:::step
+    WF_RET_FALSE(["Kết nối thất bại (False)"]):::final
+
+    WF_START --> WF_INIT --> WF_SCAN --> WF_CHECK
+    WF_CHECK -- "Đã kết nối" --> WF_SUCCESS --> WF_RET_TRUE
+    WF_CHECK -- "Chưa" --> WF_TIMEOUT
+    WF_TIMEOUT -- "Hết giờ" --> WF_FAIL_LED --> WF_RET_FALSE
+    WF_TIMEOUT -- "Chưa hết" --> WF_BLINK --> WF_CHECK

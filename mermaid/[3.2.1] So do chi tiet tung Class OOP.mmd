@@ -1,0 +1,81 @@
+classDiagram
+    direction TB
+
+    class LineFollowerSensor {
+        -bool active_low
+        -list pins_num
+        -Pin s1, s2, s3, s4, s5
+        -float last_valid_error
+        +dict MAP_ERROR
+        +__init__(s1, s2, s3, s4, s5, active_low)
+        +read_all_raw() list
+        +get_bitmask(raw) int
+        +calculate_error(raw) tuple
+        +read_status() dict
+    }
+
+    class MotorDriver {
+        -int freq
+        -PWM pwm_a1, pwm_a2, pwm_a2_alt
+        -PWM pwm_b1, pwm_b2
+        -int kickstart_speed
+        -int kickstart_ms
+        -int prev_dir_l, prev_dir_r
+        -int kick_until_l, kick_until_r
+        +int current_speed_left, current_speed_right
+        +__init__(pin_ain1, pin_ain2, pin_bin1, pin_bin2, freq)
+        -_set_duty(pwm_obj, duty_10bit) void
+        -_apply_kickstart(target, prev_dir, kick_until, now) tuple
+        +set_motor_left(speed_pct, now) void
+        +set_motor_right(speed_pct, now) void
+        +set_differential(speed_left, speed_right) void
+        +stop() void
+    }
+
+    class LineTracker {
+        -MotorDriver motor
+        -int min_speed, base_speed, startup_speed
+        -int corner_turn_outer_speed, corner_turn_inner_speed
+        -float kp, ki, kd, filter_alpha
+        -float error, prev_error, integral, derivative
+        -float smoothed_error
+        -bool is_running
+        -int lost_line_timer
+        +dict MAP_ERROR
+        +__init__(motor_driver)
+        +start(speed) void
+        +stop() void
+        +set_pid(kp, ki, kd) void
+        +set_base_speed(speed) void
+        +update(sensors_raw, now_ms) dict
+    }
+
+    class WiFiStationClient {
+        -str ssid, password
+        -WLAN sta
+        -Pin led_status
+        +__init__(ssid, password, status_pin)
+        +connect(timeout_ms) bool
+        +is_connected() bool
+        +get_ip() str
+        +blink_status(ms) void
+    }
+
+    class WebControlServer {
+        -socket srv_sock
+        -int port
+        -LineTracker tracker
+        -LineFollowerSensor sensor
+        -MotorDriver motor
+        +__init__(port, tracker, sensor, motor)
+        +start() void
+        +poll() void
+        -_handle_client(client_sock) void
+        -_parse_route(request_str) tuple
+        -_json_response(data, code) str
+    }
+
+    LineTracker o-- MotorDriver : Điều khiển vận tốc
+    WebControlServer o-- LineTracker : Tinh chỉnh PID & Start/Stop
+    WebControlServer o-- LineFollowerSensor : Đọc dữ liệu 5 mắt
+    WebControlServer o-- MotorDriver : Giám sát trạng thái PWM

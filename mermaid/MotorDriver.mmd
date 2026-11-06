@@ -1,0 +1,33 @@
+%%{init: {'theme': 'default', 'themeVariables': {'darkMode': false, 'background': '#FFFFFF', 'mainBkg': '#FFFFFF', 'nodeBkg': '#FFFFFF', 'nodeBorder': '#2563EB', 'nodeTextColor': '#000000', 'lineColor': '#1E293B', 'textColor': '#000000', 'edgeLabelBackground': '#FFFFFF', 'fontSize': '16px'}}}%%
+flowchart LR
+    classDef default fill:#FFFFFF,stroke:#2563EB,stroke-width:2px,color:#000000,font-size:16px;
+    classDef step fill:#FFFFFF,stroke:#2563EB,stroke-width:2px,color:#000000,font-size:16px;
+    classDef cond fill:#FFFFFF,stroke:#D97706,stroke-width:2.5px,color:#000000,font-size:16px,font-weight:bold;
+    classDef special fill:#FFFFFF,stroke:#DC2626,stroke-width:2.5px,color:#000000,font-size:16px,font-weight:bold;
+    classDef final fill:#FFFFFF,stroke:#059669,stroke-width:2.5px,color:#000000,font-size:16px,font-weight:bold;
+
+    M_START(["MotorDriver: _apply_kickstart()"]):::default
+    M_ZERO{"target_pct == 0?"}:::cond
+    M_STOP["Dừng xe: Duty = 0"]:::step
+
+    M_DIR["Xác định chiều quay: cur_dir = +1 hoặc -1"]:::step
+    M_CHANGE{"Đổi chiều hoặc khởi hành từ 0?"}:::cond
+
+    M_TRIG["KÍCH HOẠT XUNG MỒI: kick_until = now + 70ms"]:::special
+    M_CHECK_WINDOW{"now < kick_until?"}:::cond
+
+    M_BOOST["PHÓNG XUNG 98%: actual_pct = 98%"]:::special
+    M_NORMAL["HẠ VỀ TARGET: actual_pct = target_pct"]:::step
+
+    M_PWM["Quy đổi Duty 10-bit (0..1023)"]:::step
+    M_HW["Băm xung LEDC 1kHz ra AIN/BIN"]:::step
+    M_END(["Hoàn thành cập nhật động cơ"]):::final
+
+    M_START --> M_ZERO
+    M_ZERO -- "Đúng" --> M_STOP --> M_PWM
+    M_ZERO -- "Sai" --> M_DIR --> M_CHANGE
+    M_CHANGE -- "Đúng" --> M_TRIG --> M_CHECK_WINDOW
+    M_CHANGE -- "Không" --> M_CHECK_WINDOW
+    M_CHECK_WINDOW -- "Trong 70ms" --> M_BOOST --> M_PWM
+    M_CHECK_WINDOW -- "Hết 70ms" --> M_NORMAL --> M_PWM
+    M_PWM --> M_HW --> M_END

@@ -1,0 +1,34 @@
+%%{init: {'theme': 'default', 'themeVariables': {'darkMode': false, 'background': '#FFFFFF', 'mainBkg': '#FFFFFF', 'nodeBkg': '#FFFFFF', 'nodeBorder': '#2563EB', 'nodeTextColor': '#000000', 'lineColor': '#1E293B', 'textColor': '#000000', 'edgeLabelBackground': '#FFFFFF', 'fontSize': '16px'}}}%%
+flowchart LR
+    classDef default fill:#FFFFFF,stroke:#2563EB,stroke-width:2px,color:#000000,font-size:16px;
+    classDef step fill:#FFFFFF,stroke:#2563EB,stroke-width:2px,color:#000000,font-size:16px;
+    classDef cond fill:#FFFFFF,stroke:#D97706,stroke-width:2.5px,color:#000000,font-size:16px,font-weight:bold;
+    classDef special fill:#FFFFFF,stroke:#DC2626,stroke-width:2.5px,color:#000000,font-size:16px,font-weight:bold;
+    classDef final fill:#FFFFFF,stroke:#059669,stroke-width:2.5px,color:#000000,font-size:16px,font-weight:bold;
+
+    T_START(["LineTracker: update()"]):::default
+    T_LPF["Lọc thông thấp: e_smooth = 0.85*e_raw + 0.15*e_prev"]:::step
+    T_DIFF["Tính đạo hàm: de/dt = (e_smooth - prev_error) / dt"]:::step
+    
+    T_CHECK_ZERO{"Xe qua tâm (|e| < 0.1)?"}:::cond
+    T_RESET_I["Zero-Crossing Reset: integral = 0"]:::step
+    T_ACC_I["Tích lũy sai số: integral += e * dt"]:::step
+
+    T_PID["Tính bù: u = Kp*e + Ki*integral + Kd*derivative"]:::step
+    T_CHECK_CURVE{"Độ lệch |e_smooth|?"}:::cond
+
+    T_CORNER["BƠM CUA GẮT (|e| >= 3.2): Ngoài 90%, Trong -65%"]:::special
+    T_MID["BẺ LÁI VỪA (1.5 <= |e| < 3.2): Ngoài 78%, Trong 0%"]:::step
+    T_NORMAL["BÁM TÂM PID (|e| < 1.5): Trái = Base - u, Phải = Base + u"]:::step
+
+    T_SEND["motor.set_differential(V_Trái, V_Phải)"]:::step
+    T_END(["Trả về Telemetry dict"]):::final
+
+    T_START --> T_LPF --> T_DIFF --> T_CHECK_ZERO
+    T_CHECK_ZERO -- "Đúng" --> T_RESET_I --> T_PID
+    T_CHECK_ZERO -- "Sai" --> T_ACC_I --> T_PID
+    T_PID --> T_CHECK_CURVE
+    T_CHECK_CURVE -- ">= 3.2" --> T_CORNER --> T_SEND
+    T_CHECK_CURVE -- "1.5..3.2" --> T_MID --> T_SEND
+    T_CHECK_CURVE -- "< 1.5" --> T_NORMAL --> T_SEND
+    T_SEND --> T_END

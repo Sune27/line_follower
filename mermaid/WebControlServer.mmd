@@ -1,0 +1,33 @@
+%%{init: {'theme': 'default', 'themeVariables': {'darkMode': false, 'background': '#FFFFFF', 'mainBkg': '#FFFFFF', 'nodeBkg': '#FFFFFF', 'nodeBorder': '#2563EB', 'nodeTextColor': '#000000', 'lineColor': '#1E293B', 'textColor': '#000000', 'edgeLabelBackground': '#FFFFFF', 'fontSize': '16px'}}}%%
+flowchart LR
+    classDef default fill:#FFFFFF,stroke:#2563EB,stroke-width:2px,color:#000000,font-size:16px;
+    classDef step fill:#FFFFFF,stroke:#2563EB,stroke-width:2px,color:#000000,font-size:16px;
+    classDef cond fill:#FFFFFF,stroke:#D97706,stroke-width:2.5px,color:#000000,font-size:16px,font-weight:bold;
+    classDef final fill:#FFFFFF,stroke:#059669,stroke-width:2.5px,color:#000000,font-size:16px,font-weight:bold;
+
+    W_START(["WebControlServer: poll()"]):::default
+    W_ACCEPT{"Có client kết nối?"}:::cond
+    W_NONE["Thoát ngay (Non-blocking)"]:::step
+    
+    W_READ["Đọc HTTP Header (1024B)"]:::step
+    W_ROUTE{"URL Endpoint?"}:::cond
+
+    W_START_CMD["/api/start: tracker.start()"]:::step
+    W_STOP_CMD["/api/stop: tracker.stop()"]:::step
+    W_PID_CMD["/api/pid: Cập nhật Kp, Ki, Kd"]:::step
+    W_STATUS_CMD["/api/status: Đóng gói JSON 5 mắt"]:::step
+    W_STATIC["/: Trả về trang Web HTML/CSS/JS"]:::step
+
+    W_RESP["Gửi HTTP 200 OK"]:::step
+    W_CLOSE["Đóng client socket"]:::step
+    W_END(["Hoàn thành lượt phục vụ"]):::final
+
+    W_START --> W_ACCEPT
+    W_ACCEPT -- "Không" --> W_NONE
+    W_ACCEPT -- "Có" --> W_READ --> W_ROUTE
+    W_ROUTE -- "/api/start" --> W_START_CMD --> W_RESP
+    W_ROUTE -- "/api/stop" --> W_STOP_CMD --> W_RESP
+    W_ROUTE -- "/api/pid" --> W_PID_CMD --> W_RESP
+    W_ROUTE -- "/api/status" --> W_STATUS_CMD --> W_RESP
+    W_ROUTE -- "File tĩnh /" --> W_STATIC --> W_RESP
+    W_RESP --> W_CLOSE --> W_END

@@ -1,0 +1,26 @@
+%%{init: {'theme': 'default', 'themeVariables': {'darkMode': false, 'background': '#FFFFFF', 'mainBkg': '#FFFFFF', 'nodeBkg': '#FFFFFF', 'nodeBorder': '#2563EB', 'nodeTextColor': '#000000', 'lineColor': '#1E293B', 'textColor': '#000000', 'edgeLabelBackground': '#FFFFFF', 'fontSize': '16px'}}}%%
+flowchart LR
+    classDef default fill:#FFFFFF,stroke:#2563EB,stroke-width:2px,color:#000000,font-size:16px;
+    classDef step fill:#FFFFFF,stroke:#2563EB,stroke-width:2px,color:#000000,font-size:16px;
+    classDef cond fill:#FFFFFF,stroke:#D97706,stroke-width:2.5px,color:#000000,font-size:16px,font-weight:bold;
+    classDef final fill:#FFFFFF,stroke:#059669,stroke-width:2.5px,color:#000000,font-size:16px,font-weight:bold;
+
+    S_START(["LineFollowerSensor: calculate_error(raw)"]):::default
+    S_INV["Kiểm tra active_low: Đảo bit (0V -> 1: Đen, 3.3V -> 0: Trắng)"]:::step
+    S_MASK["Nén 5-bit: bitmask = (S1<<4) | (S2<<3) | (S3<<2) | (S4<<1) | S5"]:::step
+    S_CHECK{"bitmask có trong MAP_ERROR?"}:::cond
+
+    S_MATCH["Lấy sai số e từ MAP_ERROR (0b00100 -> e=0.0)"]:::step
+    S_SAVE["Cập nhật: last_valid_error = e"]:::step
+
+    S_ZERO{"bitmask == 0b00000 (Mất vạch / Lọt khe)?"}:::cond
+    S_RECOVER["CỨU VẠCH: Giữ nguyên last_valid_error"]:::step
+    S_FALLBACK["Gán e = last_valid_error"]:::step
+
+    S_RET(["Trả về: tuple (sai số e, bitmask, raw_list)"]):::final
+
+    S_START --> S_INV --> S_MASK --> S_CHECK
+    S_CHECK -- "Có" --> S_MATCH --> S_SAVE --> S_RET
+    S_CHECK -- "Không" --> S_ZERO
+    S_ZERO -- "Đúng (00000)" --> S_RECOVER --> S_RET
+    S_ZERO -- "Sai" --> S_FALLBACK --> S_RET
