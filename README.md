@@ -27,6 +27,7 @@ line_follower/
 │   ├── 02_huong_dan_nap_code_va_van_hanh.md
 │   ├── 03_nguyen_ly_thuat_toan_va_tinh_chinh_pid.md
 │   ├── ke_hoach_phan_cong_viet_bao_cao.md             # Kế hoạch & phân công viết báo cáo 5 người
+│   ├── quy_tac_dinh_dang_bao_cao.md                   # Quy chuẩn định dạng Word (font, lề, ảnh, bảng, công thức)
 │   ├── classes/                                       # Phân tích chi tiết các Class OOP
 │   │   └── LineFollowerSensor.md                      # Tác dụng từng method trong class đọc cảm biến
 │   └── huong_dan_noi_chan_tcrt5000_5mat_va_tb6612fng.txt
