@@ -26,6 +26,9 @@ line_follower/
 │   ├── 01_huong_dan_dau_noi_phan_cung.md
 │   ├── 02_huong_dan_nap_code_va_van_hanh.md
 │   ├── 03_nguyen_ly_thuat_toan_va_tinh_chinh_pid.md
+│   ├── ke_hoach_phan_cong_viet_bao_cao.md             # Kế hoạch & phân công viết báo cáo 5 người
+│   ├── classes/                                       # Phân tích chi tiết các Class OOP
+│   │   └── LineFollowerSensor.md                      # Tác dụng từng method trong class đọc cảm biến
 │   └── huong_dan_noi_chan_tcrt5000_5mat_va_tb6612fng.txt
 └── firmware/                                          # Mã nguồn MicroPython nạp lên ESP32
     ├── config.py                                      # Cấu hình Wi-Fi, chân GPIO, thông số tốc độ & PID
