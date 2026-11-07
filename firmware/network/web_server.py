@@ -24,47 +24,35 @@ class WebControlServer:
         self.port = port
         self.web_dir = web_dir
         self.server_sock = None
-
-        self.html_bytes = b""
-        self.css_bytes = b""
-        self.js_bytes = b""
-        self._load_web_assets()
+        self._buf = bytearray(1024)
         self._start_server()
 
-    def _read_text_file(self, filename):
+    def _send_file(self, cl, filename, content_type, cache_sec=86400):
+        """Gửi file trực tiếp từ bộ nhớ Flash theo từng gói nhỏ để tiết kiệm RAM tối đa."""
         path = f"{self.web_dir}/{filename}"
         try:
-            with open(path, "r", encoding="utf-8") as f:
-                return f.read()
+            import os
+            size = os.stat(path)[6]
+            cache_hdr = f"Cache-Control: public, max-age={cache_sec}\r\n" if cache_sec > 0 else "Cache-Control: no-cache\r\n"
+            hdr = (
+                "HTTP/1.1 200 OK\r\n"
+                f"Content-Type: {content_type}\r\n"
+                f"Content-Length: {size}\r\n"
+                f"{cache_hdr}"
+                "Access-Control-Allow-Origin: *\r\n"
+                "Connection: close\r\n\r\n"
+            ).encode("utf-8")
+            self._write_all(cl, hdr)
+
+            with open(path, "rb") as f:
+                while True:
+                    n = f.readinto(self._buf)
+                    if not n:
+                        break
+                    self._write_all(cl, memoryview(self._buf)[:n])
         except Exception as e:
-            print(f"[WebServer] Không đọc được file {path}:", e)
-            return ""
-
-    def _load_web_assets(self):
-        """
-        Đọc các file index.html, style.css, app.js vào bộ nhớ đệm RAM lúc khởi động
-        để phản hồi cực nhanh mà không cần truy xuất Flash trong lúc xe đang chạy.
-        """
-        html_str = self._read_text_file("index.html")
-        css_str = self._read_text_file("style.css")
-        js_str = self._read_text_file("app.js")
-
-        self.css_bytes = css_str.encode("utf-8")
-        self.js_bytes = js_str.encode("utf-8")
-
-        # Ghép sẵn CSS và JS vào HTML trong RAM để trình duyệt tải gọn trong 1 gói tin
-        if css_str:
-            html_str = html_str.replace(
-                '<link rel="stylesheet" href="style.css">',
-                f"<style>\n{css_str}\n</style>",
-            )
-        if js_str:
-            html_str = html_str.replace(
-                '<script src="app.js"></script>',
-                f"<script>\n{js_str}\n</script>",
-            )
-
-        self.html_bytes = html_str.encode("utf-8")
+            print(f"[WebServer] Lỗi gửi file {path}:", e)
+            self._write_all(cl, b"HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\nConnection: close\r\n\r\n")
 
     def _start_server(self):
         try:
@@ -210,17 +198,16 @@ class WebControlServer:
                     self._send_json(cl, self._build_status_dict())
 
                 elif path == "/style.css":
-                    self._send_response(cl, self.css_bytes, "text/css; charset=utf-8")
+                    self._send_file(cl, "style.css", "text/css; charset=utf-8", cache_sec=0)
 
                 elif path == "/app.js":
-                    self._send_response(cl, self.js_bytes, "application/javascript; charset=utf-8")
+                    self._send_file(cl, "app.js", "application/javascript; charset=utf-8", cache_sec=0)
 
                 elif path == "/favicon.ico":
                     self._write_all(cl, b"HTTP/1.1 204 No Content\r\nConnection: close\r\n\r\n")
 
                 else:
-                    self._send_response(cl, self.html_bytes, "text/html; charset=utf-8")
-                    gc.collect()
+                    self._send_file(cl, "index.html", "text/html; charset=utf-8", cache_sec=0)
 
                 time.sleep_ms(3)
             except Exception as e:

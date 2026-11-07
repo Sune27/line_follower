@@ -43,26 +43,26 @@ MOTOR_KICKSTART_MS = 70      # Thời gian giữ xung đề-pa (70ms)
 # ==============================================================================
 CONTROL_LOOP_MS = 10            # Chu kỳ quét cảm biến & cập nhật PID (10ms = 100Hz)
 
-LINE_BASE_SPEED = 62            # Tốc độ đi thẳng ổn định (2 bánh cùng đẩy: 62%)
-LINE_MIN_SPEED = 55             # Tốc độ tối thiểu khi bám tâm
-LINE_STARTUP_SPEED = 88         # Tốc độ khởi hành ban đầu (88% trong 450ms đầu)
+LINE_BASE_SPEED = 72            # Tốc độ đi thẳng phóng nhanh (72%)
+LINE_MIN_SPEED = 60             # Tốc độ tối thiểu khi bám tâm (60%)
+LINE_STARTUP_SPEED = 90         # Tốc độ khởi hành ban đầu (90% trong 450ms đầu)
 LINE_STARTUP_DURATION_MS = 450
 
 # Khi lệch sang Mắt 2 hoặc Mắt 4 (Cua vừa):
-MID_TURN_OUTER_SPEED = 78       # Tăng gia tốc bánh ngoài lên 78% để thắng ma sát bẻ lái
-MID_TURN_INNER_SPEED = 0        # Hạ bánh trong về 0% làm trụ xoay mượt
+MID_TURN_OUTER_SPEED = 85       # Bánh ngoài tăng lực lên 85% để bẻ lái nhanh
+MID_TURN_INNER_SPEED = 30       # Bánh trong vẫn lăn 30% giữ trớn lướt cua mượt mà, không bị mất đà
 
-# Khi lệch ra đến Mắt 1 hoặc Mắt 5 (Rìa ngoài cùng - Cần gia tốc lớn để kéo đầu xe vào):
-CORNER_TURN_OUTER_SPEED = 90    # Bơm gia tốc bánh ngoài lên 90% để kéo mạnh đầu xe vào line!
-CORNER_TURN_INNER_SPEED = -65   # Bánh trong lùi khỏe (-65%, vượt ngưỡng ma sát 60%) để trợ lực xoay!
+# Khi lệch ra đến Mắt 1 hoặc Mắt 5 (Rìa ngoài cùng):
+CORNER_TURN_OUTER_SPEED = 92    # Bơm gia tốc bánh ngoài lên 92%
+CORNER_TURN_INNER_SPEED = 0     # Bánh trong về 0% làm trụ xoay nhanh (không lùi âm để tránh hãm tốc/xoay vòng)
 
 # Khi lỡ trôi quá Mắt 1/5 ra ngoài (00000 - Cứu mất line):
 LINE_LOST_TIMEOUT_MS = 3000     # Thời gian tối đa quét tìm lại line (3 giây)
 LINE_SEARCH_OUTER_SPEED = 90    # Bánh ngoài đẩy 90%
-LINE_SEARCH_REVERSE_SPEED = -68 # Bánh trong lùi -68% để xoay đầu nhanh về lại vạch
+LINE_SEARCH_REVERSE_SPEED = -45 # Bánh trong lùi nhẹ -45% để tìm lại vạch
 AUTO_STOP_ON_CROSS = False
 
-PID_KP = 7.5                    # Hệ số Tỷ lệ (P)
+PID_KP = 6.8                    # Kp tối ưu cho tốc độ cao (êm ái, bớt rung lắc phanh)
 PID_KI = 0.04                   # Hệ số Tích phân (I)
-PID_KD = 4.5                    # Hệ số Đạo hàm (D)
+PID_KD = 4.2                    # Hệ số Đạo hàm (D)
 PID_FILTER_ALPHA = 0.85         # Hệ số lọc thông thấp làm mịn sai số

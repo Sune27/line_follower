@@ -18,6 +18,7 @@ class WiFiStationClient:
         self.ssid = ssid or getattr(config, "WIFI_SSID", "Sune")
         self.password = password if password is not None else getattr(config, "WIFI_PASSWORD", "mouse_love_rice")
         self.timeout_sec = timeout_sec
+        self.last_reconnect = 0
 
         self.sta = network.WLAN(network.STA_IF)
         self.ap = network.WLAN(network.AP_IF)
@@ -51,8 +52,14 @@ class WiFiStationClient:
         self.sta.active(True)
         time.sleep_ms(200)
 
+        # Tắt chế độ tiết kiệm điện (Modem Sleep) để ESP32 không bị ngắt kết nối với Hotspot
         try:
-            self.sta.config(txpower=14)
+            self.sta.config(pm=network.WLAN.PM_NONE)
+        except Exception:
+            pass
+
+        try:
+            self.sta.config(txpower=20)
         except Exception:
             pass
 
@@ -127,10 +134,20 @@ class WiFiStationClient:
         return "0.0.0.0"
 
     def check_connection(self):
-        """Kiểm tra trạng thái kết nối và cập nhật đèn LED xanh GPIO 2."""
+        """Kiểm tra trạng thái kết nối và tự động kết nối lại nếu bị ngắt."""
         connected = self.sta.isconnected()
         if self.led:
             self.led.value(1 if connected else 0)
+
+        if not connected:
+            now = time.ticks_ms()
+            if time.ticks_diff(now, self.last_reconnect) > 4000:
+                self.last_reconnect = now
+                print(f"[WiFi] ⚠️ Mất kết nối! Đang tự động kết nối lại vào '{self.ssid}'...")
+                try:
+                    self.sta.connect(self.ssid, self.password)
+                except Exception as e:
+                    print("[WiFi] Lỗi tự kết nối lại:", e)
         return connected
 
     def get_ip(self):

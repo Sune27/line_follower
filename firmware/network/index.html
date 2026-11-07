@@ -143,50 +143,6 @@
       </div>
     </section>
 
-    <!-- Khối Mới: Bản Đồ Quỹ Đạo Thời Gian Thực (Realtime Track Map) -->
-    <section class="card track-card">
-      <div class="card-header">
-        <div class="card-title">
-          <span class="icon">🗺️</span>
-          <span>QUỸ ĐẠO XE THỜI GIAN THỰC</span>
-        </div>
-        <div class="track-header-actions">
-          <select id="trackPreset" class="track-select" onchange="changeTrackPreset(this.value)">
-            <option value="oval">Đường Bo Góc (Oval)</option>
-            <option value="figure8">Đường Số 8 (Infinity)</option>
-            <option value="circuit">Đường Đua F1 (Circuit)</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Khung Canvas Vẽ Đường Đua -->
-      <div class="canvas-wrapper">
-        <canvas id="trackCanvas" width="420" height="230"></canvas>
-        <div id="checkpointAlert" class="checkpoint-alert">🏁 VẠCH ĐÍCH / CHECKPOINT!</div>
-      </div>
-
-      <!-- Thanh công cụ bản đồ: Vòng chạy, Tiến độ, Cân chỉnh chu kỳ vòng -->
-      <div class="track-status-bar">
-        <div class="track-stat">
-          <span class="stat-lbl">VÒNG CHẠY</span>
-          <span id="lapCount" class="stat-val">0</span>
-        </div>
-        <div class="track-stat">
-          <span class="stat-lbl">TIẾN ĐỘ</span>
-          <span id="lapProgress" class="stat-val">0%</span>
-        </div>
-        <div class="track-stat">
-          <span class="stat-lbl">1 VÒNG MẤT</span>
-          <div class="cycle-tuner">
-            <button type="button" class="btn-micro" onclick="adjustLapCycle(-1)">−</button>
-            <span id="lapCycleVal" class="cycle-val">10s</span>
-            <button type="button" class="btn-micro" onclick="adjustLapCycle(1)">+</button>
-          </div>
-        </div>
-        <button type="button" class="btn-reset-map" onclick="resetTrackPosition()" title="Đặt lại xe về vạch xuất phát">🔄 Reset</button>
-      </div>
-    </section>
-
     <!-- Khối 3: Lái Thử Động Cơ Bằng Tay (D-Pad Gamepad) -->
     <section class="card manual-card">
       <div class="card-header">
@@ -248,7 +204,7 @@
           </div>
           <div class="param-input-wrap">
             <button type="button" class="btn-step" onclick="stepVal('inSpd', -2, 40, 95)">−</button>
-            <input id="inSpd" type="number" value="62" min="40" max="95" step="1">
+            <input id="inSpd" type="number" value="72" min="40" max="95" step="1">
             <button type="button" class="btn-step" onclick="stepVal('inSpd', 2, 40, 95)">+</button>
           </div>
         </div>
@@ -261,7 +217,7 @@
           </div>
           <div class="param-input-wrap">
             <button type="button" class="btn-step" onclick="stepVal('inKp', -0.5, 1, 30)">−</button>
-            <input id="inKp" type="number" value="7.5" step="0.1" min="0">
+            <input id="inKp" type="number" value="6.8" step="0.1" min="0">
             <button type="button" class="btn-step" onclick="stepVal('inKp', 0.5, 1, 30)">+</button>
           </div>
         </div>
@@ -287,7 +243,7 @@
           </div>
           <div class="param-input-wrap">
             <button type="button" class="btn-step" onclick="stepVal('inKd', -0.5, 0, 30)">−</button>
-            <input id="inKd" type="number" value="4.5" step="0.1" min="0">
+            <input id="inKd" type="number" value="4.2" step="0.1" min="0">
             <button type="button" class="btn-step" onclick="stepVal('inKd', 0.5, 0, 30)">+</button>
           </div>
         </div>

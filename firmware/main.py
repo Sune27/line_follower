@@ -96,11 +96,12 @@ def main():
             # ƯU TIÊN 2: Lắng nghe thao tác bấm nút trên Điện thoại (Non-blocking)
             web.poll()
 
-            # Kiểm tra trạng thái đèn báo Wi-Fi và dọn bộ nhớ mỗi 5 giây khi xe nghỉ
-            if not tracker.is_active and time.ticks_diff(now, last_wifi_check) >= 5000:
+            # Kiểm tra trạng thái kết nối Wi-Fi (tự kết nối lại nếu rớt) và dọn RAM
+            if time.ticks_diff(now, last_wifi_check) >= 3000:
                 last_wifi_check = now
                 wifi_client.check_connection()
-                gc.collect()
+                if not tracker.is_active:
+                    gc.collect()
 
         except Exception as e:
             print("[Main Loop Error]:", e)
