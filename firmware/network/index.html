@@ -3,262 +3,664 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-  <meta name="theme-color" content="#090d16">
-  <title>ESP32 Line Follower Control HUD</title>
+  <meta name="theme-color" content="#06090f">
+  <title>ESP32 Line Follower Supercar HUD</title>
   <link rel="stylesheet" href="style.css">
   <script src="app.js"></script>
 </head>
 <body>
-  <div class="container">
-    <!-- Header: Thanh tiêu đề công nghệ -->
-    <header class="header card">
-      <div class="header-top">
-        <div class="brand">
-          <div class="logo-glow">🤖</div>
-          <div>
-            <h1>ROBOT DÒ LINE ESP32</h1>
-            <p class="subtitle">TCRT5000 5-Sensor Array • TB6612FNG • PID Loop</p>
-          </div>
-        </div>
-        <div id="livePill" class="live-pill online">
+  <!-- Màn hình điện thoại / Container HUD ứng dụng ô tô thể thao -->
+  <div class="hud-app">
+
+    <!-- Thanh trạng thái đỉnh máy (Top Status Bar) mô phỏng điện thoại thông minh -->
+    <div class="hud-top-bar">
+      <div class="top-left-status">
+        <span class="signal-icon">
+          <span class="sig-bar bar-1"></span>
+          <span class="sig-bar bar-2"></span>
+          <span class="sig-bar bar-3"></span>
+          <span class="sig-bar bar-4"></span>
+        </span>
+        <span class="hud-wifi-name">ESP32-AP</span>
+      </div>
+      <div id="liveClock" class="top-clock">12:30</div>
+      <div class="top-right-status">
+        <span class="battery-icon"><span class="battery-level"></span></span>
+        <span id="livePill" class="live-pill online">
           <span class="pulse-dot"></span>
           <span id="connTxt">ONLINE</span>
+        </span>
+      </div>
+    </div>
+
+    <!-- Thanh Header chính của xe -->
+    <header class="hud-header">
+      <button type="button" class="btn-drawer-toggle" onclick="toggleDrawer()" title="Mở danh mục xe">
+        <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none">
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="12" x2="16" y2="12"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+
+      <div class="hud-title-wrap">
+        <div class="car-badge-title">
+          <span class="car-logo-icon">🏎️</span>
+          <h2>ESP32 RACER GT</h2>
         </div>
+        <p class="car-mode-sub" id="modeSubtitle">AUTONOMOUS LINE TRACKER</p>
       </div>
 
-      <!-- Thanh trạng thái hoạt động -->
-      <div class="status-panel">
-        <div class="status-item">
-          <span class="status-label">Chế Độ</span>
-          <span id="modeBadge" class="badge badge-stop">ĐANG DỪNG</span>
-        </div>
-        <div class="status-divider"></div>
-        <div class="status-item flex-grow">
-          <span class="status-label">Hành Động Thời Gian Thực</span>
-          <span id="actTxt" class="action-text">SẴN SÀNG</span>
-        </div>
-      </div>
-
-      <!-- Cụm nút Bắt đầu / Dừng chính: Nút tròn STAND-BY chuẩn IEC + Nút Dừng khẩn cấp -->
-      <div class="hero-actions">
-        <button type="button" id="btnStandby" class="btn-stby-circle" onclick="toggleRun()" title="STAND-BY (Bật / Tắt Dò Line)">
-          <div class="stby-halo"></div>
-          <svg viewBox="0 0 24 24" class="stby-svg" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round">
-            <path d="M12 2v9" />
-            <path d="M18.36 6.64a9 9 0 1 1-12.73 0" />
+      <div class="header-right-actions">
+        <div class="alert-bell-badge" title="Cảnh báo hệ thống">
+          <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
           </svg>
-          <span class="stby-text">ST-BY</span>
-        </button>
-        <button type="button" id="btnStop" class="btn btn-hero-stop" onclick="sendApi('/api/stop')">
-          <span class="btn-icon">⏹</span>
-          <span class="btn-text">DỪNG XE</span>
-        </button>
+          <span class="bell-count" id="alertCount">0</span>
+        </div>
       </div>
     </header>
 
-    <!-- Khối 2: Mảng 5 Mắt Cảm Biến & Thước Sai Số -->
-    <section class="card sensor-card">
-      <div class="card-header">
-        <div class="card-title">
-          <span class="icon">📡</span>
-          <span>MẢNG CẢM BIẾN TCRT5000</span>
-        </div>
-        <label class="toggle-switch">
+    <!-- Thanh trạng thái nhanh (Status Ribbon) -->
+    <div class="status-ribbon">
+      <div class="status-cell">
+        <span class="cell-label">CHẾ ĐỘ HIỆN TẠI</span>
+        <span id="modeBadge" class="badge badge-stop">ĐANG DỪNG</span>
+      </div>
+      <div class="status-cell flex-grow">
+        <span class="cell-label">TRẠNG THÁI VẬN HÀNH</span>
+        <span id="actTxt" class="action-glow-text">STANDBY</span>
+      </div>
+      <div class="status-cell right-align">
+        <label class="hud-toggle-live" title="Bật/Tắt tự động đồng bộ">
+          <span class="toggle-txt">LIVE</span>
           <input type="checkbox" id="liveChk" checked>
-          <span class="slider"></span>
-          <span class="toggle-label">Live</span>
+          <span class="toggle-track"><span class="toggle-thumb"></span></span>
         </label>
       </div>
+    </div>
 
-      <!-- Khung cảm biến mô phỏng mạch PCB -->
-      <div class="pcb-board">
-        <div class="pcb-traces"></div>
-        <div class="sensors-row">
-          <div class="sensor-unit">
-            <div id="s0" class="sensor-diode">0</div>
-            <span class="sensor-id">S1</span>
-            <span class="sensor-pin">D21</span>
-          </div>
-          <div class="sensor-unit">
-            <div id="s1" class="sensor-diode">0</div>
-            <span class="sensor-id">S2</span>
-            <span class="sensor-pin">D19</span>
-          </div>
-          <div class="sensor-unit">
-            <div id="s2" class="sensor-diode">0</div>
-            <span class="sensor-id">S3</span>
-            <span class="sensor-pin">D18</span>
-          </div>
-          <div class="sensor-unit">
-            <div id="s3" class="sensor-diode">0</div>
-            <span class="sensor-id">S4</span>
-            <span class="sensor-pin">D5</span>
-          </div>
-          <div class="sensor-unit">
-            <div id="s4" class="sensor-diode">0</div>
-            <span class="sensor-id">S5</span>
-            <span class="sensor-pin">D17</span>
-          </div>
-        </div>
-      </div>
+    <!-- KHU VỰC NỘI DUNG CHÍNH THEO TABS -->
+    <main class="hud-main">
 
-      <!-- Thước đo độ lệch quỹ đạo (Trajectory Deviation Gauge) -->
-      <div class="trajectory-gauge">
-        <div class="gauge-labels">
-          <span>◀ CUA TRÁI</span>
-          <span>TÂM</span>
-          <span>CUA PHẢI ▶</span>
-        </div>
-        <div class="gauge-track">
-          <div class="gauge-ticks">
-            <span>-4</span><span>-2</span><span class="center-tick">0</span><span>+2</span><span>+4</span>
-          </div>
-          <div id="gaugeCursor" class="gauge-cursor" style="left: 50%;"></div>
-        </div>
-      </div>
+      <!-- ============================================================
+           TAB 1: COCKPIT - BẢNG ĐIỀU KHIỂN HOLOGRAM XE THỂ THAO
+           ============================================================ -->
+      <section id="tabCockpit" class="hud-view-section active">
+        <div class="cockpit-stage">
 
-      <!-- 3 Đồng hồ Telemetry: Sai số & Vận tốc 2 bánh -->
-      <div class="telemetry-grid">
-        <div class="telemetry-card">
-          <span class="tele-lbl">Sai Số Vị Trí</span>
-          <div class="tele-val-wrap">
-            <span id="errVal" class="tele-val err-val">0.0</span>
-          </div>
-          <span class="tele-sub">Error (-4..+4)</span>
-        </div>
-        <div class="telemetry-card">
-          <span class="tele-lbl">Bánh Trái</span>
-          <div class="tele-val-wrap">
-            <span id="spdL" class="tele-val">0%</span>
-          </div>
-          <div class="mini-bar-bg"><div id="barL" class="mini-bar-fill" style="width: 0%;"></div></div>
-        </div>
-        <div class="telemetry-card">
-          <span class="tele-lbl">Bánh Phải</span>
-          <div class="tele-val-wrap">
-            <span id="spdR" class="tele-val">0%</span>
-          </div>
-          <div id="barRWrap" class="mini-bar-bg"><div id="barR" class="mini-bar-fill" style="width: 0%;"></div></div>
-        </div>
-      </div>
-    </section>
+          <!-- Thanh điều khiển nhanh góc trái (Left Control Pod) -->
+          <div class="side-control-pod left-pod">
+            <button type="button" class="pod-btn active" onclick="switchTab('tabCockpit')" title="Giao diện buồng lái xe">
+              <svg viewBox="0 0 24 24" class="pod-icon" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="7" height="9" rx="1.5"></rect>
+                <rect x="14" y="3" width="7" height="5" rx="1.5"></rect>
+                <rect x="14" y="12" width="7" height="9" rx="1.5"></rect>
+                <rect x="3" y="16" width="7" height="5" rx="1.5"></rect>
+              </svg>
+              <span class="pod-label">Doors</span>
+            </button>
 
-    <!-- Khối 3: Lái Thử Động Cơ Bằng Tay (D-Pad Gamepad) -->
-    <section class="card manual-card">
-      <div class="card-header">
-        <div class="card-title">
-          <span class="icon">🎮</span>
-          <span>LÁI THỬ THỦ CÔNG (MANUAL TEST)</span>
-        </div>
-        <span class="badge badge-subtle">Kiểm tra động cơ</span>
-      </div>
+            <button type="button" class="pod-btn" onclick="switchTab('tabSensors')" title="Xem chi tiết 5 mắt cảm biến">
+              <svg viewBox="0 0 24 24" class="pod-icon" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path>
+              </svg>
+              <span class="pod-label">Sensors</span>
+            </button>
 
-      <div class="dpad-container">
-        <div class="dpad-matrix">
-          <div></div>
-          <button type="button" class="dpad-btn dpad-up" onclick="manual(65, 65)">
-            <span class="dpad-arrow">▲</span>
-            <span class="dpad-sub">TIẾN</span>
+            <button type="button" class="pod-btn" onclick="switchTab('tabManual')" title="Lái thử xe bằng tay">
+              <svg viewBox="0 0 24 24" class="pod-icon" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="9"></circle>
+                <polygon points="12,7 16,15 12,13 8,15"></polygon>
+              </svg>
+              <span class="pod-label">Drive</span>
+            </button>
+
+            <button type="button" class="pod-btn" onclick="switchTab('tabTuning')" title="Tinh chỉnh thông số PID">
+              <svg viewBox="0 0 24 24" class="pod-icon" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+              </svg>
+              <span class="pod-label">PID</span>
+            </button>
+          </div>
+
+          <!-- Thanh trạng thái nhanh góc phải (Right Status Pod) -->
+          <div class="side-control-pod right-pod">
+            <div class="telemetry-pill">
+              <span class="pill-icon">⚡</span>
+              <div class="pill-content">
+                <span class="pill-sub">Base PWM</span>
+                <span class="pill-val" id="hudBaseSpd">72%</span>
+              </div>
+            </div>
+
+            <div class="telemetry-pill">
+              <span class="pill-icon">⚠️</span>
+              <div class="pill-content">
+                <span class="pill-sub">Deviation</span>
+                <span class="pill-val" id="hudErrVal">0.0</span>
+              </div>
+            </div>
+
+            <div class="telemetry-pill">
+              <span class="pill-icon">🛡️</span>
+              <div class="pill-content">
+                <span class="pill-sub">Brakes</span>
+                <span class="pill-val text-green" id="hudBrakeStat">READY</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- SƠ ĐỒ WIREFRAME CHI TIẾT CỦA XE (TOP-DOWN CAR SCHEMATIC) -->
+          <div class="car-wireframe-container">
+
+            <!-- Radar / Tia quét quỹ đạo phía trước đầu xe -->
+            <div class="radar-scan-cone"></div>
+
+            <!-- MẢNG 5 MẮT TCRT5000 TRỰC TIẾP TRÊN MŨI XE -->
+            <div class="hud-sensor-array">
+              <div class="sensor-node" title="Mắt S1 (D21)">
+                <div id="s0" class="sensor-diode">0</div>
+                <span class="node-tag">S1</span>
+              </div>
+              <div class="sensor-node" title="Mắt S2 (D19)">
+                <div id="s1" class="sensor-diode">0</div>
+                <span class="node-tag">S2</span>
+              </div>
+              <div class="sensor-node center-node" title="Mắt S3 Tâm (D18)">
+                <div id="s2" class="sensor-diode">0</div>
+                <span class="node-tag">S3</span>
+              </div>
+              <div class="sensor-node" title="Mắt S4 (D5)">
+                <div id="s3" class="sensor-diode">0</div>
+                <span class="node-tag">S4</span>
+              </div>
+              <div class="sensor-node" title="Mắt S5 (D17)">
+                <div id="s4" class="sensor-diode">0</div>
+                <span class="node-tag">S5</span>
+              </div>
+            </div>
+
+            <!-- Leader Line kết nối cảm biến mũi xe -->
+            <div class="leader-line line-sensor-hud">
+              <span class="line-callout">TCRT5000 ARRAY</span>
+            </div>
+
+            <!-- BẢN VẼ VECTOR SVG SIÊU XE TỪ TRÊN XUỐNG (TOP-DOWN SUPERCAR CHASSIS) -->
+            <svg class="car-topdown-svg" viewBox="0 0 200 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <filter id="cyanGlow" x="-20%" y="-20%" width="140%" height="140%">
+                  <feGaussianBlur stdDeviation="3" result="blur" />
+                  <feMerge>
+                    <feMergeNode in="blur" />
+                    <feMergeNode in="SourceGraphic" />
+                  </feMerge>
+                </filter>
+                <linearGradient id="bodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#1e293b" stop-opacity="0.6"/>
+                  <stop offset="50%" stop-color="#0f172a" stop-opacity="0.8"/>
+                  <stop offset="100%" stop-color="#020617" stop-opacity="0.9"/>
+                </linearGradient>
+                <linearGradient id="glassGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.25"/>
+                  <stop offset="100%" stop-color="#0369a1" stop-opacity="0.05"/>
+                </linearGradient>
+              </defs>
+
+              <!-- Bóng gầm xe (Chassis ground shadow) -->
+              <ellipse cx="100" cy="205" rx="75" ry="165" fill="#000000" fill-opacity="0.75" />
+
+              <!-- Bánh trước bên trái (FL Tire) -->
+              <rect x="18" y="78" width="16" height="42" rx="5" fill="#182232" stroke="#38bdf8" stroke-width="1.2" />
+              <line x1="22" y1="88" x2="30" y2="88" stroke="#64748b" stroke-width="1.5" />
+              <line x1="22" y1="99" x2="30" y2="99" stroke="#64748b" stroke-width="1.5" />
+              <line x1="22" y1="110" x2="30" y2="110" stroke="#64748b" stroke-width="1.5" />
+
+              <!-- Bánh trước bên phải (FR Tire) -->
+              <rect x="166" y="78" width="16" height="42" rx="5" fill="#182232" stroke="#38bdf8" stroke-width="1.2" />
+              <line x1="170" y1="88" x2="178" y2="88" stroke="#64748b" stroke-width="1.5" />
+              <line x1="170" y1="99" x2="178" y2="99" stroke="#64748b" stroke-width="1.5" />
+              <line x1="170" y1="110" x2="178" y2="110" stroke="#64748b" stroke-width="1.5" />
+
+              <!-- Bánh sau bên trái (RL Tire / Motor A) -->
+              <rect x="16" y="275" width="18" height="46" rx="5" fill="#182232" stroke="#38bdf8" stroke-width="1.4" />
+              <line x1="20" y1="287" x2="30" y2="287" stroke="#38bdf8" stroke-width="1.5" />
+              <line x1="20" y1="298" x2="30" y2="298" stroke="#38bdf8" stroke-width="1.5" />
+              <line x1="20" y1="309" x2="30" y2="309" stroke="#38bdf8" stroke-width="1.5" />
+
+              <!-- Bánh sau bên phải (RR Tire / Motor B) -->
+              <rect x="166" y="275" width="18" height="46" rx="5" fill="#182232" stroke="#38bdf8" stroke-width="1.4" />
+              <line x1="170" y1="287" x2="180" y2="287" stroke="#38bdf8" stroke-width="1.5" />
+              <line x1="170" y1="298" x2="180" y2="298" stroke="#38bdf8" stroke-width="1.5" />
+              <line x1="170" y1="309" x2="180" y2="309" stroke="#38bdf8" stroke-width="1.5" />
+
+              <!-- Thân xe chính (Outer Body Silhouette) -->
+              <path d="M 68 34 
+                       C 82 28, 118 28, 132 34 
+                       C 146 40, 158 54, 160 76 
+                       C 161 88, 156 122, 156 138 
+                       C 156 148, 164 165, 166 195 
+                       C 168 225, 168 255, 166 280 
+                       C 164 305, 168 335, 158 358 
+                       C 150 376, 134 382, 100 382 
+                       C 66 382, 50 376, 42 358 
+                       C 32 335, 36 305, 34 280 
+                       C 32 255, 32 225, 34 195 
+                       C 36 165, 44 148, 44 138 
+                       C 44 122, 39 88, 40 76 
+                       C 42 54, 54 40, 68 34 Z" 
+                    fill="url(#bodyGrad)" 
+                    stroke="#475569" 
+                    stroke-width="1.5" />
+
+              <!-- Đèn pha Neon phía trước (Front Headlights) -->
+              <path d="M 46 64 Q 60 52 74 60" stroke="#38bdf8" stroke-width="2.2" filter="url(#cyanGlow)" />
+              <path d="M 126 60 Q 140 52 154 64" stroke="#38bdf8" stroke-width="2.2" filter="url(#cyanGlow)" />
+
+              <!-- Đường gân nắp capo (Hood Creases) -->
+              <path d="M 72 75 L 82 120 M 128 75 L 118 120" stroke="#334155" stroke-width="1.2" />
+              <path d="M 88 48 L 92 90 M 112 48 L 108 90" stroke="#1e293b" stroke-width="1" />
+
+              <!-- Kính chắn gió trước (Front Windshield) -->
+              <path d="M 52 135 C 70 125, 130 125, 148 135 L 140 185 C 120 180, 80 180, 60 185 Z" 
+                    fill="url(#glassGrad)" 
+                    stroke="#38bdf8" 
+                    stroke-width="1.4" />
+
+              <!-- Nóc cabin (Roof Silhouette) -->
+              <path d="M 60 185 C 80 180, 120 180, 140 185 L 136 265 C 118 268, 82 268, 64 265 Z" 
+                    fill="#0b1322" 
+                    stroke="#334155" 
+                    stroke-width="1.2" />
+
+              <!-- Kính chắn gió sau (Rear Windshield) -->
+              <path d="M 64 265 C 82 268, 118 268, 136 265 L 142 305 C 122 312, 78 312, 58 305 Z" 
+                    fill="url(#glassGrad)" 
+                    stroke="#38bdf8" 
+                    stroke-width="1.2" />
+
+              <!-- Cánh gió đuôi thể thao (Rear Spoiler) -->
+              <path d="M 44 358 Q 100 365 156 358 L 158 370 Q 100 376 42 370 Z" 
+                    fill="#0f172a" 
+                    stroke="#e11d48" 
+                    stroke-width="1.8" />
+
+              <!-- Dải đèn hậu LED phía sau (Rear LED Taillights) -->
+              <line x1="50" y1="375" x2="75" y2="375" stroke="#ef4444" stroke-width="2.5" />
+              <line x1="125" y1="375" x2="150" y2="375" stroke="#ef4444" stroke-width="2.5" />
+            </svg>
+
+            <!-- Trạng thái Neon trung tâm xe (Giống chữ "Unlocked" trên ảnh mẫu) -->
+            <div class="cockpit-center-status">
+              <div class="lock-indicator-icon" id="cockpitLockIcon">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                  <path d="M7 11V7a5 5 0 0 1 9.9-1"></path>
+                </svg>
+              </div>
+              <div class="status-hologram-text" id="cockpitStatusText">STANDBY</div>
+              <div class="status-hologram-sub">ESP32 DRIVE ACTIVE</div>
+            </div>
+
+            <!-- Nút gọi trạng thái bánh trái & bánh phải có đường dẫn Leader Lines -->
+            <div class="wheel-callout wheel-left">
+              <div class="callout-node">
+                <span class="callout-ring"></span>
+                <span class="callout-label">BÁNH TRÁI</span>
+                <span class="callout-val" id="spdL">0%</span>
+              </div>
+              <div class="mini-bar-bg"><div id="barL" class="mini-bar-fill" style="width: 0%;"></div></div>
+            </div>
+
+            <div class="wheel-callout wheel-right">
+              <div class="callout-node">
+                <span class="callout-ring"></span>
+                <span class="callout-label">BÁNH PHẢI</span>
+                <span class="callout-val" id="spdR">0%</span>
+              </div>
+              <div class="mini-bar-bg"><div id="barR" class="mini-bar-fill" style="width: 0%;"></div></div>
+            </div>
+
+            <!-- Bảng hiển thị sai số quỹ đạo lệch tâm (HUD Trajectory Deviation) -->
+            <div class="cockpit-hud-gauge">
+              <div class="gauge-labels">
+                <span>◀ CUA TRÁI</span>
+                <span class="center-lbl">TÂM VẠCH (0.0)</span>
+                <span>CUA PHẢI ▶</span>
+              </div>
+              <div class="gauge-track">
+                <div class="gauge-ticks">
+                  <span>-4</span><span>-2</span><span class="center-tick">0</span><span>+2</span><span>+4</span>
+                </div>
+                <div id="gaugeCursor" class="gauge-cursor" style="left: 50%;"></div>
+              </div>
+              <div class="gauge-footer-info">
+                <span>Độ Lệch Góc (Error):</span>
+                <span id="errVal" class="err-glow-val">0.0</span>
+              </div>
+            </div>
+
+            <!-- NÚT KHỞI ĐỘNG "START ENGINE" SIÊU XE (BOTTOM RIGHT CORNER) -->
+            <div class="engine-start-dock">
+              <!-- Nút tròn STAND-BY chuẩn IEC tương thích firmware cũ -->
+              <button type="button" id="btnStandby" class="btn-engine-start" onclick="toggleRun()" title="Bắt đầu / Tạm dừng dò line">
+                <div class="engine-radial-arc"></div>
+                <div class="engine-inner-button">
+                  <svg viewBox="0 0 24 24" class="engine-icon" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                    <path d="M12 2v9"></path>
+                    <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
+                  </svg>
+                  <span class="engine-text-top">START</span>
+                  <span class="engine-text-bot">ENGINE</span>
+                </div>
+              </button>
+
+              <!-- Nút dừng khẩn cấp E-STOP phụ trợ -->
+              <button type="button" id="btnStop" class="btn-emergency-stop" onclick="sendApi('/api/stop')" title="Dừng khẩn cấp">
+                <span class="e-stop-icon">⏹</span>
+                <span class="e-stop-text">DỪNG XE</span>
+              </button>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================
+           TAB 2: SENSORS - CHẨN ĐOÁN MẢNG 5 MẮT TCRT5000 & MẠCH
+           ============================================================ -->
+      <section id="tabSensors" class="hud-view-section">
+        <div class="card glass-card">
+          <div class="card-header">
+            <div class="card-title">
+              <span class="icon">📡</span>
+              <span>MẢNG CẢM BIẾN DÒ LINE TCRT5000</span>
+            </div>
+            <span class="badge badge-subtle">5 Kênh Hồng Ngoại</span>
+          </div>
+
+          <p class="section-desc">Mã nhị phân 5 mắt quang điện phản xạ vạch đen (1 = Vạch Đen, 0 = Nền Trắng). Chân GPIO cấu hình Input Pull-Up trên ESP32.</p>
+
+          <div class="pcb-detailed-board">
+            <div class="pcb-grid-line"></div>
+            <div class="sensors-grid-layout">
+              <div class="sensor-card-cell">
+                <div class="cell-top">S1 • D21</div>
+                <div class="cell-status">NGOÀI CÙNG TRÁI</div>
+                <div class="cell-action">Bù Cua Gắt Phải</div>
+              </div>
+              <div class="sensor-card-cell">
+                <div class="cell-top">S2 • D19</div>
+                <div class="cell-status">TRÁI PHỤ</div>
+                <div class="cell-action">Cua Vừa Phải</div>
+              </div>
+              <div class="sensor-card-cell center-highlight">
+                <div class="cell-top">S3 • D18</div>
+                <div class="cell-status">MẮT TÂM</div>
+                <div class="cell-action">Tiến Thẳng Ổn Định</div>
+              </div>
+              <div class="sensor-card-cell">
+                <div class="cell-top">S4 • D5</div>
+                <div class="cell-status">PHẢI PHỤ</div>
+                <div class="cell-action">Cua Vừa Trái</div>
+              </div>
+              <div class="sensor-card-cell">
+                <div class="cell-top">S5 • D17</div>
+                <div class="cell-status">NGOÀI CÙNG PHẢI</div>
+                <div class="cell-action">Bù Cua Gắt Trái</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bảng Telemetry 3 cột số liệu động cơ -->
+          <div class="telemetry-grid">
+            <div class="telemetry-card">
+              <span class="tele-lbl">Sai Số Tính Toán</span>
+              <div class="tele-val-wrap">
+                <span id="errValTab" class="tele-val err-val">0.0</span>
+              </div>
+              <span class="tele-sub">PID Error Input</span>
+            </div>
+            <div class="telemetry-card">
+              <span class="tele-lbl">Công Suất Bánh Trái</span>
+              <div class="tele-val-wrap">
+                <span id="spdLTab" class="tele-val">0%</span>
+              </div>
+              <span class="tele-sub">TB6612FNG PWMA</span>
+            </div>
+            <div class="telemetry-card">
+              <span class="tele-lbl">Công Suất Bánh Phải</span>
+              <div class="tele-val-wrap">
+                <span id="spdRTab" class="tele-val">0%</span>
+              </div>
+              <span class="tele-sub">TB6612FNG PWMB</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================
+           TAB 3: MANUAL DRIVE - LÁI THỬ BẰNG TAY (GAMEPAD DPAD)
+           ============================================================ -->
+      <section id="tabManual" class="hud-view-section">
+        <div class="card glass-card">
+          <div class="card-header">
+            <div class="card-title">
+              <span class="icon">🎮</span>
+              <span>LÁI THỬ THỦ CÔNG (MANUAL CONTROL)</span>
+            </div>
+            <span class="badge badge-subtle">Kiểm tra động cơ</span>
+          </div>
+
+          <p class="section-desc">Khi bấm lái bằng tay, hệ thống sẽ tự động tạm dừng chế độ dò line tự động để người điều khiển di chuyển xe kiểm tra bánh răng và hướng quay.</p>
+
+          <div class="dpad-cockpit-wrapper">
+            <div class="dpad-matrix">
+              <div></div>
+              <button type="button" class="dpad-btn dpad-up" onclick="manual(65, 65)">
+                <span class="dpad-arrow">▲</span>
+                <span class="dpad-sub">TIẾN</span>
+              </button>
+              <div></div>
+
+              <button type="button" class="dpad-btn dpad-left" onclick="manual(-55, 55)">
+                <span class="dpad-arrow">◀</span>
+                <span class="dpad-sub">TRÁI</span>
+              </button>
+              <button type="button" class="dpad-btn dpad-stop" onclick="sendApi('/api/stop')">
+                <span class="dpad-stop-icon">■</span>
+                <span class="dpad-sub">DỪNG</span>
+              </button>
+              <button type="button" class="dpad-btn dpad-right" onclick="manual(55, -55)">
+                <span class="dpad-arrow">▶</span>
+                <span class="dpad-sub">PHẢI</span>
+              </button>
+
+              <div></div>
+              <button type="button" class="dpad-btn dpad-down" onclick="manual(-60, -60)">
+                <span class="dpad-arrow">▼</span>
+                <span class="dpad-sub">LÙI</span>
+              </button>
+              <div></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================
+           TAB 4: PID TUNING - TINH CHỈNH THÔNG SỐ TỐC ĐỘ VÀ PID
+           ============================================================ -->
+      <section id="tabTuning" class="hud-view-section">
+        <div class="card glass-card">
+          <div class="card-header">
+            <div class="card-title">
+              <span class="icon">⚙️</span>
+              <span>TINH CHỈNH TỐC ĐỘ & BỘ ĐIỀU KHIỂN PID</span>
+            </div>
+            <span class="badge badge-subtle">Live Tuning</span>
+          </div>
+
+          <!-- Các cấu hình sẵn (PID Quick Presets) -->
+          <div class="preset-pills">
+            <button type="button" class="btn-preset" onclick="applyPreset(68, 6.2, 0.02, 3.8)">🛡️ Ổn Định</button>
+            <button type="button" class="btn-preset active" onclick="applyPreset(75, 7.0, 0.04, 4.5)">🎯 Tiêu Chuẩn</button>
+            <button type="button" class="btn-preset" onclick="applyPreset(85, 8.2, 0.05, 5.2)">🏎️ Đua Tốc Độ</button>
+          </div>
+
+          <div class="param-grid">
+            <!-- Tốc độ cơ sở -->
+            <div class="param-card">
+              <div class="param-header">
+                <label for="inSpd">Tốc Độ Cơ Sở (Base Speed)</label>
+                <span class="param-unit">% PWM</span>
+              </div>
+              <div class="param-input-wrap">
+                <button type="button" class="btn-step" onclick="stepVal('inSpd', -2, 40, 95)">−</button>
+                <input id="inSpd" type="number" value="72" min="40" max="95" step="1">
+                <button type="button" class="btn-step" onclick="stepVal('inSpd', 2, 40, 95)">+</button>
+              </div>
+            </div>
+
+            <!-- Hệ số Kp -->
+            <div class="param-card">
+              <div class="param-header">
+                <label for="inKp">Hệ Số Kp (Tỷ Lệ - Proportional)</label>
+                <span class="param-unit">Độ Nhạy</span>
+              </div>
+              <div class="param-input-wrap">
+                <button type="button" class="btn-step" onclick="stepVal('inKp', -0.5, 1, 30)">−</button>
+                <input id="inKp" type="number" value="6.8" step="0.1" min="0">
+                <button type="button" class="btn-step" onclick="stepVal('inKp', 0.5, 1, 30)">+</button>
+              </div>
+            </div>
+
+            <!-- Hệ số Ki -->
+            <div class="param-card">
+              <div class="param-header">
+                <label for="inKi">Hệ Số Ki (Tích Phân - Integral)</label>
+                <span class="param-unit">Khử Lệch Tĩnh</span>
+              </div>
+              <div class="param-input-wrap">
+                <button type="button" class="btn-step" onclick="stepVal('inKi', -0.01, 0, 1)">−</button>
+                <input id="inKi" type="number" value="0.04" step="0.01" min="0">
+                <button type="button" class="btn-step" onclick="stepVal('inKi', 0.01, 0, 1)">+</button>
+              </div>
+            </div>
+
+            <!-- Hệ số Kd -->
+            <div class="param-card">
+              <div class="param-header">
+                <label for="inKd">Hệ Số Kd (Đạo Hàm - Derivative)</label>
+                <span class="param-unit">Chống Lắc Đuôi</span>
+              </div>
+              <div class="param-input-wrap">
+                <button type="button" class="btn-step" onclick="stepVal('inKd', -0.5, 0, 30)">−</button>
+                <input id="inKd" type="number" value="4.2" step="0.1" min="0">
+                <button type="button" class="btn-step" onclick="stepVal('inKd', 0.5, 0, 30)">+</button>
+              </div>
+            </div>
+          </div>
+
+          <button type="button" id="btnSavePid" class="btn btn-save" onclick="savePid()">
+            <span class="btn-icon">💾</span>
+            <span>CẬP NHẬT THÔNG SỐ VÀO XE</span>
           </button>
-          <div></div>
-
-          <button type="button" class="dpad-btn dpad-left" onclick="manual(-55, 55)">
-            <span class="dpad-arrow">◀</span>
-            <span class="dpad-sub">TRÁI</span>
-          </button>
-          <button type="button" class="dpad-btn dpad-stop" onclick="sendApi('/api/stop')">
-            <span class="dpad-stop-icon">■</span>
-            <span class="dpad-sub">DỪNG</span>
-          </button>
-          <button type="button" class="dpad-btn dpad-right" onclick="manual(55, -55)">
-            <span class="dpad-arrow">▶</span>
-            <span class="dpad-sub">PHẢI</span>
-          </button>
-
-          <div></div>
-          <button type="button" class="dpad-btn dpad-down" onclick="manual(-60, -60)">
-            <span class="dpad-arrow">▼</span>
-            <span class="dpad-sub">LÙI</span>
-          </button>
-          <div></div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <!-- Khối 4: Tinh Chỉnh Thông Số Tốc Độ & PID Trực Tiếp -->
-    <section class="card tuning-card">
-      <div class="card-header">
-        <div class="card-title">
-          <span class="icon">⚙️</span>
-          <span>TINH CHỈNH TỐC ĐỘ & THÔNG SỐ PID</span>
-        </div>
-        <span class="badge badge-subtle">Live Tuning</span>
-      </div>
+    </main>
 
-      <div class="param-grid">
-        <!-- Tốc độ cơ sở -->
-        <div class="param-card">
-          <div class="param-header">
-            <label for="inSpd">Tốc độ cơ sở</label>
-            <span class="param-unit">% PWM</span>
-          </div>
-          <div class="param-input-wrap">
-            <button type="button" class="btn-step" onclick="stepVal('inSpd', -2, 40, 95)">−</button>
-            <input id="inSpd" type="number" value="72" min="40" max="95" step="1">
-            <button type="button" class="btn-step" onclick="stepVal('inSpd', 2, 40, 95)">+</button>
-          </div>
-        </div>
-
-        <!-- Hệ số Kp -->
-        <div class="param-card">
-          <div class="param-header">
-            <label for="inKp">Hệ số Kp (Tỷ lệ)</label>
-            <span class="param-unit">Độ nhạy</span>
-          </div>
-          <div class="param-input-wrap">
-            <button type="button" class="btn-step" onclick="stepVal('inKp', -0.5, 1, 30)">−</button>
-            <input id="inKp" type="number" value="6.8" step="0.1" min="0">
-            <button type="button" class="btn-step" onclick="stepVal('inKp', 0.5, 1, 30)">+</button>
-          </div>
-        </div>
-
-        <!-- Hệ số Ki -->
-        <div class="param-card">
-          <div class="param-header">
-            <label for="inKi">Hệ số Ki (Tích phân)</label>
-            <span class="param-unit">Bù lệch</span>
-          </div>
-          <div class="param-input-wrap">
-            <button type="button" class="btn-step" onclick="stepVal('inKi', -0.01, 0, 1)">−</button>
-            <input id="inKi" type="number" value="0.04" step="0.01" min="0">
-            <button type="button" class="btn-step" onclick="stepVal('inKi', 0.01, 0, 1)">+</button>
-          </div>
-        </div>
-
-        <!-- Hệ số Kd -->
-        <div class="param-card">
-          <div class="param-header">
-            <label for="inKd">Hệ số Kd (Đạo hàm)</label>
-            <span class="param-unit">Chống lắc</span>
-          </div>
-          <div class="param-input-wrap">
-            <button type="button" class="btn-step" onclick="stepVal('inKd', -0.5, 0, 30)">−</button>
-            <input id="inKd" type="number" value="4.2" step="0.1" min="0">
-            <button type="button" class="btn-step" onclick="stepVal('inKd', 0.5, 0, 30)">+</button>
-          </div>
-        </div>
-      </div>
-
-      <button type="button" id="btnSavePid" class="btn btn-save" onclick="savePid()">
-        <span class="btn-icon">💾</span>
-        <span>CẬP NHẬT THÔNG SỐ VÀO XE</span>
+    <!-- THANH ĐIỀU HƯỚNG DƯỚI ĐÁY (BOTTOM DOCK BAR - GIỐNG ẢNH MẪU) -->
+    <nav class="hud-bottom-dock">
+      <button type="button" class="dock-item active" onclick="switchTab('tabCockpit')" id="dockCockpit">
+        <svg viewBox="0 0 24 24" class="dock-svg" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="9"></circle>
+          <path d="M12 3v9l6 3"></path>
+        </svg>
+        <span class="dock-label">Cockpit</span>
       </button>
-    </section>
 
-    <!-- Footer -->
-    <footer class="footer">
-      <span>Line Follower System • ESP32 MicroPython</span>
-    </footer>
+      <button type="button" class="dock-item" onclick="switchTab('tabSensors')" id="dockSensors">
+        <svg viewBox="0 0 24 24" class="dock-svg" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"></path>
+        </svg>
+        <span class="dock-label">Diagnostics</span>
+      </button>
+
+      <button type="button" class="dock-item" onclick="switchTab('tabManual')" id="dockManual">
+        <svg viewBox="0 0 24 24" class="dock-svg" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="12,2 15,8 22,9 17,14 18,21 12,17 6,21 7,14 2,9 9,8"></polygon>
+        </svg>
+        <span class="dock-label">Performance</span>
+      </button>
+
+      <button type="button" class="dock-item" onclick="switchTab('tabTuning')" id="dockTuning">
+        <svg viewBox="0 0 24 24" class="dock-svg" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+        <span class="dock-label">PID Tuning</span>
+      </button>
+    </nav>
+
+    <!-- ============================================================
+         DRAWER TRƯỢT TỪ BÊN PHẢI/TRÁI (SIDE DRAWER - GIỐNG ẢNH MẪU 2)
+         ============================================================ -->
+    <div id="sideDrawerBackdrop" class="drawer-backdrop" onclick="toggleDrawer()"></div>
+    <aside id="sideDrawer" class="hud-drawer">
+      <div class="drawer-header">
+        <button type="button" class="btn-close-drawer" onclick="toggleDrawer()">✕</button>
+      </div>
+
+      <div class="drawer-car-hero">
+        <div class="drawer-car-badge">🏎️</div>
+        <h3 class="drawer-car-name">ESP32 RACER GT</h3>
+        <p class="drawer-car-sub">TCRT5000 5-SENSOR ARRAY • TB6612FNG</p>
+        <div class="drawer-dots">
+          <span class="dot active"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </div>
+      </div>
+
+      <nav class="drawer-menu">
+        <button type="button" class="drawer-item" onclick="switchTab('tabCockpit'); toggleDrawer();">
+          <span class="menu-icon">👤</span>
+          <span class="menu-txt">COCKPIT CHÍNH</span>
+        </button>
+        <button type="button" class="drawer-item" onclick="switchTab('tabSensors'); toggleDrawer();">
+          <span class="menu-icon">🚗</span>
+          <span class="menu-txt">CHẨN ĐOÁN MẮT ĐỌC</span>
+        </button>
+        <button type="button" class="drawer-item" onclick="switchTab('tabManual'); toggleDrawer();">
+          <span class="menu-icon">🔧</span>
+          <span class="menu-txt">LÁI THỬ MANUAL</span>
+        </button>
+        <button type="button" class="drawer-item" onclick="switchTab('tabTuning'); toggleDrawer();">
+          <span class="menu-icon">📍</span>
+          <span class="menu-txt">TINH CHỈNH PID</span>
+        </button>
+        <div class="drawer-divider"></div>
+        <div class="drawer-info-block">
+          <div class="info-row">
+            <span>MCU:</span>
+            <span>ESP32 Dual-Core 240MHz</span>
+          </div>
+          <div class="info-row">
+            <span>DRIVER:</span>
+            <span>TB6612FNG Dual H-Bridge</span>
+          </div>
+          <div class="info-row">
+            <span>PORT:</span>
+            <span>COM3 • HTTP 80</span>
+          </div>
+        </div>
+      </nav>
+    </aside>
+
   </div>
 </body>
 </html>
