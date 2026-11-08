@@ -211,8 +211,8 @@ class WebControlServer:
                             preset = params.get("p")
                             if preset == "home":
                                 self.arm.pose_home()
-                            elif preset == "rest":
-                                self.arm.pose_rest()
+                            elif preset in ("rest", "park"):
+                                self.arm.pose_park()
                             elif preset == "grab":
                                 self.arm.pose_grab()
                             elif preset == "grip":

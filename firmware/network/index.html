@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#090d16">
   <title>ESP32 Line Follower Control HUD</title>
-  <link rel="stylesheet" href="style.css?v=5">
-  <script src="app.js?v=5"></script>
+  <link rel="stylesheet" href="style.css?v=6">
+  <script src="app.js?v=6"></script>
 </head>
 <body>
   <div class="container">
@@ -200,8 +200,8 @@
         <!-- Khớp Đế Base -->
         <div class="joint-card">
           <div class="joint-header">
-            <span>🔄 Khớp Đế (Base - Xoay)</span>
-            <span class="badge badge-accent">D15</span>
+            <span>🔄 Khớp Đế (Base • D15)</span>
+            <span class="joint-val" id="angBaseVal">25°</span>
           </div>
           <div class="joint-btn-row">
             <button type="button" class="btn-micro btn-rotate" onpointerdown="startDrive('b', 1)" onpointerup="stopDrive('b')" onpointerleave="stopDrive('b')" ontouchstart="startDrive('b', 1); event.preventDefault();" ontouchend="stopDrive('b'); event.preventDefault();" oncontextmenu="return false;">◀ XOAY TRÁI</button>
@@ -212,8 +212,8 @@
         <!-- Khớp Vai Shoulder -->
         <div class="joint-card">
           <div class="joint-header">
-            <span>📐 Khớp Vai (Shoulder - Nâng)</span>
-            <span class="badge badge-accent">D2</span>
+            <span>📐 Khớp Vai (Shoulder • D2)</span>
+            <span class="joint-val" id="angShoulderVal">0°</span>
           </div>
           <div class="joint-btn-row">
             <button type="button" class="btn-micro btn-rotate" onpointerdown="startDrive('s', -1)" onpointerup="stopDrive('s')" onpointerleave="stopDrive('s')" ontouchstart="startDrive('s', -1); event.preventDefault();" ontouchend="stopDrive('s'); event.preventDefault();" oncontextmenu="return false;">▼ HẠ XUỐNG</button>
@@ -224,8 +224,8 @@
         <!-- Khớp Khuỷu Elbow -->
         <div class="joint-card">
           <div class="joint-header">
-            <span>🦾 Khớp Khuỷu (Elbow - Vươn)</span>
-            <span class="badge badge-accent">D4</span>
+            <span>🦾 Khớp Khuỷu (Elbow • D4)</span>
+            <span class="joint-val" id="angElbowVal">90°</span>
           </div>
           <div class="joint-btn-row">
             <button type="button" class="btn-micro btn-rotate" onpointerdown="startDrive('e', -1)" onpointerup="stopDrive('e')" onpointerleave="stopDrive('e')" ontouchstart="startDrive('e', -1); event.preventDefault();" ontouchend="stopDrive('e'); event.preventDefault();" oncontextmenu="return false;">◀ GẬP VÀO</button>
@@ -236,8 +236,8 @@
         <!-- Khớp Kẹp Gripper -->
         <div class="joint-card">
           <div class="joint-header">
-            <span>🤏 Khớp Kẹp (Gripper - Bàn tay)</span>
-            <span class="badge badge-accent">D32</span>
+            <span>🤏 Khớp Kẹp (Gripper • D32)</span>
+            <span class="joint-val" id="angGripperVal">47°</span>
           </div>
           <div class="joint-btn-row">
             <button type="button" class="btn-micro btn-grip" onclick="sendArmPreset('grip')">🤏 KẸP CHẶT</button>
@@ -248,8 +248,8 @@
 
       <!-- Hàng nút tư thế nhanh (Presets) -->
       <div class="arm-presets">
-        <button type="button" class="btn-preset" onclick="sendArmPreset('home')">🏠 Về Chuẩn (Home)</button>
-        <button type="button" class="btn-preset" onclick="sendArmPreset('rest')">📦 Gập Gọn (Chạy xe)</button>
+        <button type="button" class="btn-preset" onclick="sendArmPreset('home')">🏠 Sẵn Sàng (Home)</button>
+        <button type="button" class="btn-preset" onclick="sendArmPreset('park')">📦 Đỗ Tay / Gập Gọn (Park)</button>
         <button type="button" class="btn-preset" onclick="sendArmPreset('grab')">🎯 Hạ Xuống Gắp</button>
         <button type="button" class="btn-preset btn-stop-arm" onclick="sendArmPreset('stop_all')">⏹ Dừng Tay</button>
       </div>

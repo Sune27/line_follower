@@ -101,14 +101,12 @@ function updateUI(d) {
     if (d.kd !== undefined) document.getElementById("inKd").value = d.kd;
   }
 
-  // 6. Cập nhật góc cánh tay Robot từ xe nếu người dùng không đang giữ lái
-  if (d.arm && !isDrivingArm && (now - lastArmEditTime > 800)) {
+  // 6. Cập nhật góc cánh tay Robot hiển thị thời gian thực (Chỉ text góc, không slider)
+  if (d.arm) {
     for (const k in d.arm) {
       const info = ARM_MAP[k];
-      if (info) {
-        const inp = document.getElementById(info.input);
+      if (info && d.arm[k] !== undefined) {
         const lbl = document.getElementById(info.label);
-        if (inp && document.activeElement !== inp) inp.value = d.arm[k];
         if (lbl) lbl.innerText = d.arm[k] + "°";
       }
     }

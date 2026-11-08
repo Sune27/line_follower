@@ -88,3 +88,21 @@ ARM_DEFAULT_BASE = 90           # Góc ban đầu khớp đế (90° = chính di
 ARM_DEFAULT_SHOULDER = 90       # Góc ban đầu khớp vai
 ARM_DEFAULT_ELBOW = 90          # Góc ban đầu khớp khuỷu
 ARM_DEFAULT_GRIPPER = 45        # Góc ban đầu khớp kẹp (hơi mở)
+
+# ĐẢO CHIỀU QUAY KHỚP SERVO (KHI LẮP NGƯỢC HƯỚNG CƠ KHÍ):
+ARM_REVERSE_BASE = False            # Khớp 1: Khớp Đế D15 (Giữ nguyên)
+ARM_REVERSE_SHOULDER = True         # Khớp 2: Khớp Vai D2 (Đảo chiều: Nâng <-> Hạ)
+ARM_REVERSE_ELBOW = True            # Khớp 3: Khớp Khuỷu D4 (Đảo chiều: Vươn <-> Gập)
+ARM_REVERSE_GRIPPER = False         # Khớp 4: Khớp Kẹp D32 (Giữ nguyên)
+
+# ==============================================================================
+# CẤU HÌNH QUY TRÌNH ĐỖ CÁNH TAY AN TOÀN (SAFE PARK / REST ROUTINE - CÁCH 2)
+# ==============================================================================
+# Trước khi rút nguồn hoặc khi xe chạy dò line:
+# Bấm nút [📦 Đỗ Tay / Gập Gọn] để cánh tay gập sát vào thân xe, hạ thấp trọng tâm.
+# Khi khởi động lại, cánh tay bắt đầu từ đúng tư thế đỗ này -> Chuyển động êm ru 100%!
+ARM_PARK_BASE_US = 742              # Khớp Đế D15: 25° (742µs)
+ARM_PARK_SHOULDER_US = 450          # Khớp Vai D2: 0° (450µs - Ngửa tối đa)
+ARM_PARK_ELBOW_US = 1500            # Khớp Khuỷu D4: 90° (1500µs)
+ARM_PARK_GRIPPER_US = 1000          # Khớp Kẹp D32: Khép gọn gàng (1000µs)
+ARM_SPEED_US = 25                   # Tốc độ lướt xung: 25µs / 15ms (êm ái, mượt mà)
