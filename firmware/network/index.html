@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#090d16">
   <title>ESP32 Line Follower Control HUD</title>
-  <link rel="stylesheet" href="style.css">
-  <script src="app.js"></script>
+  <link rel="stylesheet" href="style.css?v=5">
+  <script src="app.js?v=5"></script>
 </head>
 <body>
   <div class="container">
@@ -182,6 +182,76 @@
           </button>
           <div></div>
         </div>
+      </div>
+    </section>
+
+    
+    <!-- Khối 4: Điều Khiển Cánh Tay Robot 4 Bậc Tự Do (4-DOF Arm) -->
+    <section class="card arm-card">
+      <div class="card-header">
+        <div class="card-title">
+          <span class="icon">🦾</span>
+          <span>ĐIỀU KHIỂN CÁNH TAY ROBOT (4-DOF)</span>
+        </div>
+        <span class="badge badge-subtle">D15 • D2 • D4 • D32</span>
+      </div>
+
+      <div class="arm-grid">
+        <!-- Khớp Đế Base -->
+        <div class="joint-card">
+          <div class="joint-header">
+            <span>🔄 Khớp Đế (Base - Xoay)</span>
+            <span class="badge badge-accent">D15</span>
+          </div>
+          <div class="joint-btn-row">
+            <button type="button" class="btn-micro btn-rotate" onpointerdown="startDrive('b', 1)" onpointerup="stopDrive('b')" onpointerleave="stopDrive('b')" ontouchstart="startDrive('b', 1); event.preventDefault();" ontouchend="stopDrive('b'); event.preventDefault();" oncontextmenu="return false;">◀ XOAY TRÁI</button>
+            <button type="button" class="btn-micro btn-rotate" onpointerdown="startDrive('b', -1)" onpointerup="stopDrive('b')" onpointerleave="stopDrive('b')" ontouchstart="startDrive('b', -1); event.preventDefault();" ontouchend="stopDrive('b'); event.preventDefault();" oncontextmenu="return false;">XOAY PHẢI ▶</button>
+          </div>
+        </div>
+
+        <!-- Khớp Vai Shoulder -->
+        <div class="joint-card">
+          <div class="joint-header">
+            <span>📐 Khớp Vai (Shoulder - Nâng)</span>
+            <span class="badge badge-accent">D2</span>
+          </div>
+          <div class="joint-btn-row">
+            <button type="button" class="btn-micro btn-rotate" onpointerdown="startDrive('s', -1)" onpointerup="stopDrive('s')" onpointerleave="stopDrive('s')" ontouchstart="startDrive('s', -1); event.preventDefault();" ontouchend="stopDrive('s'); event.preventDefault();" oncontextmenu="return false;">▼ HẠ XUỐNG</button>
+            <button type="button" class="btn-micro btn-rotate" onpointerdown="startDrive('s', 1)" onpointerup="stopDrive('s')" onpointerleave="stopDrive('s')" ontouchstart="startDrive('s', 1); event.preventDefault();" ontouchend="stopDrive('s'); event.preventDefault();" oncontextmenu="return false;">NÂNG LÊN ▲</button>
+          </div>
+        </div>
+
+        <!-- Khớp Khuỷu Elbow -->
+        <div class="joint-card">
+          <div class="joint-header">
+            <span>🦾 Khớp Khuỷu (Elbow - Vươn)</span>
+            <span class="badge badge-accent">D4</span>
+          </div>
+          <div class="joint-btn-row">
+            <button type="button" class="btn-micro btn-rotate" onpointerdown="startDrive('e', -1)" onpointerup="stopDrive('e')" onpointerleave="stopDrive('e')" ontouchstart="startDrive('e', -1); event.preventDefault();" ontouchend="stopDrive('e'); event.preventDefault();" oncontextmenu="return false;">◀ GẬP VÀO</button>
+            <button type="button" class="btn-micro btn-rotate" onpointerdown="startDrive('e', 1)" onpointerup="stopDrive('e')" onpointerleave="stopDrive('e')" ontouchstart="startDrive('e', 1); event.preventDefault();" ontouchend="stopDrive('e'); event.preventDefault();" oncontextmenu="return false;">VƯƠN RA ▶</button>
+          </div>
+        </div>
+
+        <!-- Khớp Kẹp Gripper -->
+        <div class="joint-card">
+          <div class="joint-header">
+            <span>🤏 Khớp Kẹp (Gripper - Bàn tay)</span>
+            <span class="badge badge-accent">D32</span>
+          </div>
+          <div class="joint-btn-row">
+            <button type="button" class="btn-micro btn-grip" onclick="sendArmPreset('grip')">🤏 KẸP CHẶT</button>
+            <button type="button" class="btn-micro btn-open" onclick="sendArmPreset('open')">🖐️ MỞ RỘNG</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hàng nút tư thế nhanh (Presets) -->
+      <div class="arm-presets">
+        <button type="button" class="btn-preset" onclick="sendArmPreset('home')">🏠 Về Chuẩn (Home)</button>
+        <button type="button" class="btn-preset" onclick="sendArmPreset('rest')">📦 Gập Gọn (Chạy xe)</button>
+        <button type="button" class="btn-preset" onclick="sendArmPreset('grab')">🎯 Hạ Xuống Gắp</button>
+        <button type="button" class="btn-preset btn-stop-arm" onclick="sendArmPreset('stop_all')">⏹ Dừng Tay</button>
       </div>
     </section>
 

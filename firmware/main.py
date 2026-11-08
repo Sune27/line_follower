@@ -17,6 +17,7 @@ from web_server import WebControlServer
 from modules.line_sensor import LineFollowerSensor
 from modules.motor_driver import MotorDriver
 from modules.line_tracker import LineTracker
+from modules.robotic_arm import RoboticArm
 
 
 def main():
@@ -65,11 +66,20 @@ def main():
     # 4. Khởi tạo Bộ điều khiển Dò Line 5 mắt
     tracker = LineTracker(motor_driver=motor)
 
-    # 5. Khởi tạo Web Server điều khiển qua trình duyệt Điện thoại (Cổng 80)
+    # 5. Khởi tạo Cánh tay Robot 4 bậc tự do (D15, D2, D4, D32)
+    arm = RoboticArm(
+        base_pin=getattr(config, "PIN_ARM_BASE", 15),
+        shoulder_pin=getattr(config, "PIN_ARM_SHOULDER", 2),
+        elbow_pin=getattr(config, "PIN_ARM_ELBOW", 4),
+        gripper_pin=getattr(config, "PIN_ARM_GRIPPER", 32),
+    )
+
+    # 6. Khởi tạo Web Server điều khiển qua trình duyệt Điện thoại (Cổng 80)
     web = WebControlServer(
         line_sensor=line_sensor,
         motor=motor,
         tracker=tracker,
+        arm=arm,
         port=80,
     )
 
@@ -95,6 +105,9 @@ def main():
 
             # ƯU TIÊN 2: Lắng nghe thao tác bấm nút trên Điện thoại (Non-blocking)
             web.poll()
+
+            # ƯU TIÊN 3: Cập nhật chuyển động lướt mượt cho Cánh tay Robot
+            arm.update(now)
 
             # Kiểm tra trạng thái kết nối Wi-Fi (tự kết nối lại nếu rớt) và dọn RAM
             if time.ticks_diff(now, last_wifi_check) >= 3000:

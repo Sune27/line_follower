@@ -4,10 +4,8 @@
 from machine import Pin
 
 # Bật sáng ngay đèn LED xanh (GPIO 2) ở mili-giây đầu tiên để báo hiệu chip đã Boot
-try:
-    Pin(2, Pin.OUT, value=1)
-except Exception:
-    pass
+# GPIO 2 duoc giai phong cho Servo Khop Vai (Shoulder)
+pass
 
 try:
     import main

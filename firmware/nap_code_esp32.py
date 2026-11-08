@@ -125,6 +125,7 @@ def main():
         (base / "modules" / "line_sensor.py", "modules/line_sensor.py"),
         (base / "modules" / "motor_driver.py", "modules/motor_driver.py"),
         (base / "modules" / "line_tracker.py", "modules/line_tracker.py"),
+        (base / "modules" / "robotic_arm.py", "modules/robotic_arm.py"),
         (base / "network" / "wifi_ap.py", "network/wifi_ap.py"),
         (base / "network" / "web_server.py", "network/web_server.py"),
         (base / "network" / "index.html", "network/index.html"),

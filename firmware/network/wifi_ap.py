@@ -23,10 +23,13 @@ class WiFiStationClient:
         self.sta = network.WLAN(network.STA_IF)
         self.ap = network.WLAN(network.AP_IF)
 
-        try:
-            self.led = Pin(led_pin, Pin.OUT)
-            self.led.value(0)
-        except Exception:
+        if led_pin is not None:
+            try:
+                self.led = Pin(led_pin, Pin.OUT)
+                self.led.value(0)
+            except Exception:
+                self.led = None
+        else:
             self.led = None
 
     def _blink(self, count=4, on_ms=70, off_ms=70):

@@ -17,10 +17,11 @@ except ImportError:
 
 
 class WebControlServer:
-    def __init__(self, line_sensor, motor, tracker, port=80, web_dir="network"):
+    def __init__(self, line_sensor, motor, tracker, arm=None, port=80, web_dir="network"):
         self.line_sensor = line_sensor
         self.motor = motor
         self.tracker = tracker
+        self.arm = arm
         self.port = port
         self.web_dir = web_dir
         self.server_sock = None
@@ -33,7 +34,7 @@ class WebControlServer:
         try:
             import os
             size = os.stat(path)[6]
-            cache_hdr = f"Cache-Control: public, max-age={cache_sec}\r\n" if cache_sec > 0 else "Cache-Control: no-cache\r\n"
+            cache_hdr = "Cache-Control: no-store, no-cache, must-revalidate\r\nPragma: no-cache\r\nExpires: 0\r\n"
             hdr = (
                 "HTTP/1.1 200 OK\r\n"
                 f"Content-Type: {content_type}\r\n"
@@ -79,7 +80,7 @@ class WebControlServer:
     def _build_status_dict(self):
         raw = self.line_sensor.read_all_raw()
         err = self.line_sensor.calculate_error(raw)
-        return {
+        res = {
             "run": self.tracker.is_active,
             "act": self.tracker.last_action,
             "s": raw,
@@ -91,6 +92,9 @@ class WebControlServer:
             "ki": self.tracker.ki,
             "kd": self.tracker.kd,
         }
+        if self.arm:
+            res["arm"] = self.arm.get_angles()
+        return res
 
     def _write_all(self, cl, data_bytes):
         total = len(data_bytes)
@@ -195,6 +199,39 @@ class WebControlServer:
                     self._send_json(cl, self._build_status_dict())
 
                 elif path == "/api/status":
+                    self._send_json(cl, self._build_status_dict())
+
+                elif path == "/api/arm":
+                    if self.arm:
+                        drive_dir = params.get("dir")
+                        if drive_dir is not None:
+                            joint = params.get("j", "b")
+                            self.arm.drive_joint(joint, int(drive_dir))
+                        else:
+                            preset = params.get("p")
+                            if preset == "home":
+                                self.arm.pose_home()
+                            elif preset == "rest":
+                                self.arm.pose_rest()
+                            elif preset == "grab":
+                                self.arm.pose_grab()
+                            elif preset == "grip":
+                                self.arm.grip(True)
+                            elif preset == "open":
+                                self.arm.grip(False)
+                            elif preset == "stop_all":
+                                self.arm.stop_all()
+                            else:
+                                b = params.get("b")
+                                s = params.get("s")
+                                e = params.get("e")
+                                g = params.get("g")
+                                self.arm.set_angles(
+                                    base=int(b) if b is not None else None,
+                                    shoulder=int(s) if s is not None else None,
+                                    elbow=int(e) if e is not None else None,
+                                    gripper=int(g) if g is not None else None,
+                                )
                     self._send_json(cl, self._build_status_dict())
 
                 elif path == "/style.css":

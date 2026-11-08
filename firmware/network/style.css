@@ -540,7 +540,7 @@ h1 {
    ============================================================================= */
 .telemetry-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 8px;
 }
 
@@ -607,7 +607,7 @@ h1 {
 
 .dpad-matrix {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 8px;
   width: 100%;
   max-width: 250px;
@@ -930,4 +930,196 @@ h1 {
   color: var(--text-dim);
   font-family: var(--font-mono);
   padding: 6px 0;
+}
+
+/* =============================================================================
+   ROBOTIC ARM 4-DOF CONTROLS
+   ============================================================================= */
+.arm-card {
+  border-color: rgba(56, 189, 248, 0.2);
+}
+
+.arm-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+@media (min-width: 480px) {
+  .arm-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.joint-card {
+  background: rgba(10, 15, 26, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.joint-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.joint-val {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 800;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.12);
+  padding: 2px 7px;
+  border-radius: 4px;
+  border: 1px solid rgba(56, 189, 248, 0.25);
+}
+
+.joint-slider-wrap {
+  width: 100%;
+}
+
+.arm-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: #1e293b;
+  outline: none;
+  margin: 6px 0;
+}
+
+.arm-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #0284c7;
+  border: 2px solid #38bdf8;
+  cursor: pointer;
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.5);
+  transition: transform 0.1s, background 0.1s;
+}
+
+.arm-range::-webkit-slider-thumb:active {
+  transform: scale(1.2);
+  background: #38bdf8;
+}
+
+.arm-range::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #0284c7;
+  border: 2px solid #38bdf8;
+  cursor: pointer;
+}
+
+.joint-btn-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.joint-btn-row .btn-micro {
+  flex: 1;
+  width: auto;
+  height: 26px;
+  padding: 0 6px;
+  font-size: 11px;
+}
+
+.btn-grip {
+  background: rgba(245, 158, 11, 0.15) !important;
+  color: #fbbf24 !important;
+  border: 1px solid rgba(245, 158, 11, 0.3) !important;
+}
+
+.btn-open {
+  background: rgba(16, 185, 129, 0.15) !important;
+  color: #34d399 !important;
+  border: 1px solid rgba(16, 185, 129, 0.3) !important;
+}
+
+.arm-presets {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.btn-preset {
+  background: #1e293b;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #f1f5f9;
+  border-radius: var(--radius-sm);
+  padding: 10px 6px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.btn-preset:active {
+  transform: scale(0.96);
+  background: #0284c7;
+  border-color: #38bdf8;
+}
+
+.btn-rotate {
+  background: rgba(56, 189, 248, 0.15) !important;
+  color: #38bdf8 !important;
+  border: 1px solid rgba(56, 189, 248, 0.35) !important;
+  font-weight: 700 !important;
+  padding: 6px 10px !important;
+  height: 32px !important;
+  font-size: 11px !important;
+}
+
+.btn-rotate:active {
+  background: #0284c7 !important;
+  color: #fff !important;
+  border-color: #38bdf8 !important;
+}
+
+.btn-rotate, .btn-micro {
+  touch-action: none !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -webkit-touch-callout: none !important;
+}
+
+.btn-stop-arm {
+  background: rgba(239, 68, 68, 0.15) !important;
+  color: #f87171 !important;
+  border-color: rgba(239, 68, 68, 0.35) !important;
+}
+.btn-stop-arm:active {
+  background: #dc2626 !important;
+  color: #fff !important;
+}
+
+.joint-card .joint-btn-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.joint-card .btn-rotate, .joint-card .btn-grip, .joint-card .btn-open {
+  flex: 1;
+  height: 42px !important;
+  font-size: 12px !important;
+  font-weight: 800 !important;
 }

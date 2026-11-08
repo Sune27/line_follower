@@ -9,7 +9,7 @@ WIFI_SSID = "Sune"                  # Tên Wi-Fi (Hotspot điện thoại) cần
 WIFI_PASSWORD = "mouse_love_rice"   # Mật khẩu Wi-Fi "Sune"
 WIFI_CONNECT_TIMEOUT_SEC = 10       # Thời gian chờ mỗi lần thử kết nối (giây)
 
-PIN_STATUS_LED = 2                  # Chân đèn LED xanh báo trạng thái trên ESP32
+PIN_STATUS_LED = None               # Giải phóng GPIO 2 cho Servo Khớp Vai (Shoulder)
 
 # ==============================================================================
 # 2. CẤU HÌNH MẢNG CẢM BIẾN DÒ LINE TCRT5000 5 MẮT (MẠNG BÊN PHẢI LIỀN KỀ)
@@ -66,3 +66,25 @@ PID_KP = 6.8                    # Kp tối ưu cho tốc độ cao (êm ái, b�
 PID_KI = 0.04                   # Hệ số Tích phân (I)
 PID_KD = 4.2                    # Hệ số Đạo hàm (D)
 PID_FILTER_ALPHA = 0.85         # Hệ số lọc thông thấp làm mịn sai số
+
+# ==============================================================================
+# 5. CẤU HÌNH CÁNH TAY ROBOT 4 BẬC TỰ DO (4-DOF SERVO ARM)
+# ==============================================================================
+# ⚠️ CẢNH BÁO PHẦN CỨNG ESP32:
+#   - Chân GPIO 34 và GPIO 35 là chân INPUT-ONLY (chỉ đọc), KHÔNG THỂ xuất xung PWM!
+#   - Vì vậy, 4 chân PWM an toàn và tương thích hoàn toàn cho 4 Servo gồm:
+#     D32 (Base), D33 (Shoulder), D25 (Elbow - thay D34), D23 (Gripper - thay D35).
+PIN_ARM_BASE = 15               # Khớp 1: Khớp Đế xoay Trái / Phải    -> Cọc D15 (GPIO 15)
+PIN_ARM_SHOULDER = 2            # Khớp 2: Khớp Vai nâng / hạ cánh tay -> Cọc D2  (GPIO 2)
+PIN_ARM_ELBOW = 4               # Khớp 3: Khớp Khuỷu vươn / gập       -> Cọc D4  (GPIO 4)
+PIN_ARM_GRIPPER = 32            # Khớp 4: Khớp Kẹp mở / đóng bàn tay  -> Cọc D32 (GPIO 32)
+
+ARM_SERVO_FREQ = 50             # Tần số chuẩn cho Servo RC (50Hz = chu kỳ 20ms)
+ARM_MIN_US = 450                # Mở rộng dải xung tối thiểu (450µs) để quay hết biên 0°
+ARM_MAX_US = 2550               # Mở rộng dải xung tối đa (2550µs) để quay hết biên 180°
+ARM_SPEED_DEG = 3               # Tốc độ lướt mượt: 3 độ / 15ms (không bị sốc dòng sụt áp)
+
+ARM_DEFAULT_BASE = 90           # Góc ban đầu khớp đế (90° = chính diện)
+ARM_DEFAULT_SHOULDER = 90       # Góc ban đầu khớp vai
+ARM_DEFAULT_ELBOW = 90          # Góc ban đầu khớp khuỷu
+ARM_DEFAULT_GRIPPER = 45        # Góc ban đầu khớp kẹp (hơi mở)

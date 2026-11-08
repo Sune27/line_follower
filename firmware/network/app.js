@@ -5,6 +5,15 @@
 let busy = false;
 let isCarRunning = false;
 let lastPidEditTime = 0;
+let lastArmEditTime = 0;
+let armDebounceTimer = null;
+
+const ARM_MAP = {
+  b: { input: "angBase", label: "angBaseVal" },
+  s: { input: "angShoulder", label: "angShoulderVal" },
+  e: { input: "angElbow", label: "angElbowVal" },
+  g: { input: "angGripper", label: "angGripperVal" },
+};
 
 function setConnectionStatus(online) {
   const pill = document.getElementById("livePill");
@@ -91,6 +100,19 @@ function updateUI(d) {
     if (d.ki !== undefined) document.getElementById("inKi").value = d.ki;
     if (d.kd !== undefined) document.getElementById("inKd").value = d.kd;
   }
+
+  // 6. Cập nhật góc cánh tay Robot từ xe nếu người dùng không đang giữ lái
+  if (d.arm && !isDrivingArm && (now - lastArmEditTime > 800)) {
+    for (const k in d.arm) {
+      const info = ARM_MAP[k];
+      if (info) {
+        const inp = document.getElementById(info.input);
+        const lbl = document.getElementById(info.label);
+        if (inp && document.activeElement !== inp) inp.value = d.arm[k];
+        if (lbl) lbl.innerText = d.arm[k] + "°";
+      }
+    }
+  }
 }
 
 function sendApi(path) {
@@ -154,6 +176,76 @@ function savePid() {
       btn.style.filter = "none";
     }
   }, 600);
+}
+
+
+// =============================================================================
+// ROBOTIC ARM CONTROLLER FUNCTIONS
+// =============================================================================
+function onArmSlider(joint, val) {
+  lastArmEditTime = Date.now();
+  val = parseInt(val, 10);
+  const info = ARM_MAP[joint];
+  if (info) {
+    const lbl = document.getElementById(info.label);
+    if (lbl) lbl.innerText = val + "°";
+  }
+  clearTimeout(armDebounceTimer);
+  armDebounceTimer = setTimeout(() => {
+    sendApi("/api/arm?" + joint + "=" + val);
+  }, 50);
+}
+
+function setJoint(joint, val) {
+  lastArmEditTime = Date.now();
+  val = parseInt(val, 10);
+  const info = ARM_MAP[joint];
+  if (info) {
+    const inp = document.getElementById(info.input);
+    const lbl = document.getElementById(info.label);
+    if (inp) inp.value = val;
+    if (lbl) lbl.innerText = val + "°";
+  }
+  sendApi("/api/arm?" + joint + "=" + val);
+}
+
+function stepArm(joint, delta) {
+  lastArmEditTime = Date.now();
+  const info = ARM_MAP[joint];
+  if (!info) return;
+  const inp = document.getElementById(info.input);
+  if (!inp) return;
+  let val = Math.max(0, Math.min(180, (parseInt(inp.value, 10) || 90) + delta));
+  inp.value = val;
+  const lbl = document.getElementById(info.label);
+  if (lbl) lbl.innerText = val + "°";
+  clearTimeout(armDebounceTimer);
+  armDebounceTimer = setTimeout(() => {
+    sendApi("/api/arm?" + joint + "=" + val);
+  }, 40);
+}
+
+let isDrivingArm = false;
+
+function startDrive(joint, dir) {
+  isDrivingArm = true;
+  sendApi("/api/arm?j=" + joint + "&dir=" + dir);
+}
+
+function stopDrive(joint) {
+  if (!isDrivingArm) return;
+  isDrivingArm = false;
+  sendApi("/api/arm?j=" + joint + "&dir=0");
+}
+
+function rotateBase(dir) {
+  const targetAngle = dir === "left" ? 180 : 0;
+  setJoint("b", targetAngle);
+}
+
+function sendArmPreset(presetName) {
+  lastArmEditTime = 0;
+  sendApi("/api/arm?p=" + presetName);
 }
 
 window.addEventListener("DOMContentLoaded", () => {
